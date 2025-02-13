@@ -91,6 +91,20 @@ ADMiner is also available on some Linux distributions:
 - BlackArch: `pacman -S ad-miner`
 - NixOS: `nix-env -iA nixos.ad-miner`
 
+A Docker image is available to build. Build the image with the following commmand:
+
+```sh
+docker build -t ad-miner .
+```
+
+To run this with the BloodHound Community Edition data, use the commands below:
+
+```sh
+docker run -v ${PWD}:/tmp ad-miner AD-miner -b bolt://host.docker.internal:7687 -u neo4j -p bloodhoundcommunityedition -cf docker-test
+```
+
+Note that mounting the volume with `-v` is critical to get the output of the data. This assumes that the BHCE server is running on the Docker host with default settings. 
+
 ## Usage ##
 
 Run the tool:
