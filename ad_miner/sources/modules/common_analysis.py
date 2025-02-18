@@ -696,7 +696,10 @@ def generateADCSListPage(requests_results, arguments):
     page.render()
 
 
-tenant_id_name = {"F8CDEF31-A31E-4B4A-93E4-5F571E91255A": "Microsoft Entra"}
+tenant_id_name = {
+    "F8CDEF31-A31E-4B4A-93E4-5F571E91255A": "Microsoft Entra",
+    None: "Unknown",
+}
 
 
 def setTenantIDName(requests_results, arguments):
@@ -771,8 +774,7 @@ def genAzureUsers(requests_results, arguments):
         tenant_name = tenant_id_name.get(tenant_id, tenant_id)
         data.append(
             {
-                "Tenant Name": '<i class="bi bi-globe2"></i> '
-                + tenant_name,
+                "Tenant Name": '<i class="bi bi-globe2"></i> ' + tenant_name,
                 "Name": '<i class="bi bi-person-fill"></i> ' + user["Name"],
                 "Synced on premise": (
                     '<i class="bi bi-check-square"></i>'
@@ -822,8 +824,7 @@ def genAzureAdmin(requests_results, arguments):
         tenant_name = tenant_id_name.get(tenant_id, tenant_id)
         data.append(
             {
-                "Tenant Name": '<i class="bi bi-globe2"></i> '
-                + tenant_name,
+                "Tenant Name": '<i class="bi bi-globe2"></i> ' + tenant_name,
                 "Name": '<i class="bi bi-gem"></i> ' + admin["Name"],
             }
         )
@@ -863,8 +864,7 @@ def genAzureGroups(requests_results, arguments):
         tenant_name = tenant_id_name.get(tenant_id, tenant_id)
         data.append(
             {
-                "Tenant Name": '<i class="bi bi-globe2"></i> '
-                + tenant_name,
+                "Tenant Name": '<i class="bi bi-globe2"></i> ' + tenant_name,
                 "Name": '<i class="bi bi-people-fill"></i> ' + group["Name"],
                 "Description": group["Description"],
             }
@@ -967,7 +967,11 @@ def genAzureDevices(requests_results, arguments):
             os = dict["os"]
             if "windows" in dict["os"].lower():
                 os = '<i class="bi bi-windows"></i> ' + os
-            elif "mac" in dict["os"].lower() or "iphone" in dict["os"].lower() or "ios" in dict["os"].lower():
+            elif (
+                "mac" in dict["os"].lower()
+                or "iphone" in dict["os"].lower()
+                or "ios" in dict["os"].lower()
+            ):
                 os = '<i class="bi bi-apple"></i> ' + os
             elif "android" in dict["os"].lower():
                 os = '<i class="bi bi-android"></i> ' + os
