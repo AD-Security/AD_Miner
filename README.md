@@ -60,7 +60,7 @@ You can also observe indicators over time to help measuring mitigation efficienc
   <img src="doc/img/evol.gif" alt="Main page" width="70%" />
 </p>
 
-AD Miner has been initially created by Forvis Mazars Cybersecurity team and is maintained by Grant Thornton Cybersecurity Audit & Advisory Team.
+AD Miner has been initially created by Forvis Mazars and is maintained by Grant Thornton Cybersecurity Audit & Advisory Team.
 
 ## Prerequisites
 
