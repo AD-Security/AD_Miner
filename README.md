@@ -1,17 +1,18 @@
 <div align="center">
 
-# AD Miner #
+<img src="doc/img/ADMiner-Logo-Color.png" alt="AD_Miner" width="50%">
+
 
 <br>
 </div>
 
 <div align="center">
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/Mazars-Tech/AD_Miner/releases" title="Latest AD_Miner release">
-        <img src="https://img.shields.io/github/v/release/Mazars-Tech/AD_Miner?color=informational" alt="Latest AD_Miner version"></a>
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/Mazars-Tech/AD_Miner/commits/main" title="Latest release">
-        <img src="https://img.shields.io/github/last-commit/Mazars-Tech/AD_Miner/main?label=Latest%20release" alt="Latest release"></a>
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/Mazars-Tech/AD_Miner/commits/dev" title="Latest commit in dev">
-        <img src="https://img.shields.io/github/last-commit/Mazars-Tech/AD_Miner/dev?label=Latest%20commit%20in%20dev" alt="Latest commit in dev"></a>
+    <a target="_blank" rel="noopener noreferrer" href="https://github.com/AD-Security/AD_Miner/releases" title="Latest AD_Miner release">
+        <img src="https://img.shields.io/github/v/release/AD-Security/AD_Miner?color=informational" alt="Latest AD_Miner version"></a>
+    <a target="_blank" rel="noopener noreferrer" href="https://github.com/AD-Security/AD_Miner/commits/main" title="Latest release">
+        <img src="https://img.shields.io/github/last-commit/AD-Security/AD_Miner/main?label=Latest%20release" alt="Latest release"></a>
+    <a target="_blank" rel="noopener noreferrer" href="https://github.com/AD-Security/AD_Miner/commits/dev" title="Latest commit in dev">
+        <img src="https://img.shields.io/github/last-commit/AD-Security/AD_Miner/dev?label=Latest%20commit%20in%20dev" alt="Latest commit in dev"></a>
     <a target="_blank" rel="noopener noreferrer" href="https://inventory.raw.pm/tools.html#ADMiner" title="Rawsec's CyberSecurity Inventory">
         <img src="https://inventory.raw.pm/img/badges/Rawsec-inventoried-FF5050_flat.svg" alt="Rawsec's CyberSecurity Inventory badge"></a>
 
