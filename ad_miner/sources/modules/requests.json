@@ -906,6 +906,16 @@
         "request": "MATCH (u:User) WHERE u.fgpp_name IS NOT NULL RETURN u.fgpp_msds_psoappliesto, u.fgpp_name, u.fgpp_msds_minimumpasswordlength, u.fgpp_msds_minimumpasswordage, u.fgpp_msds_maximumpasswordage, u.fgpp_msds_passwordreversibleencryptionenabled, u.fgpp_msds_passwordhistorylength, u.fgpp_msds_passwordcomplexityenabled, u.fgpp_msds_lockoutduration, u.fgpp_msds_lockoutthreshold, u.fgpp_msds_lockoutobservationwindow",
         "output_type": "list"
     },
+    "smb_signing": {
+        "name": "SMB signing",
+        "request": "MATCH (c:Computer) RETURN c.name AS name, c.domain AS domain, c.smbsigning AS smbsigning, c.is_dc AS dc, c.is_server AS server, toInteger(($extract_date$ - c.lastlogontimestamp)/86400) AS lastlogontimestamp",
+        "output_type": "dict"
+    },
+    "ldap_server_configuration": {
+        "name": "LDAP and LDAPS configuration",
+        "request":"MATCH (c) WHERE c.ldapavailable OR c.ldapsavailable RETURN c.name AS name, c.domain AS domain, c.ldapavailable AS ldap, c.ldapsavailable AS ldaps, c.ldapsigning AS ldapsigning, c.ldapsepa AS ldapsepa",
+        "output_type": "dict"
+    },
     "azure_set_gag": {
         "name": "Set gag=TRUE to Global admin group",
         "request": "MATCH (a:AZRole) WHERE a.name STARTS WITH 'GLOBAL ADMINISTRATOR@' SET a.is_gag=TRUE",
