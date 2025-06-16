@@ -1113,40 +1113,43 @@ class Neo4j:
 
         logger.print_debug("[Done]")
 
-        if not requests_results["users_admin_on_servers_1"]:
-            requests_results["users_admin_on_servers_1"] = []
-        if not requests_results["users_admin_on_servers_2"]:
-            requests_results["users_admin_on_servers_2"] = []
+        try:
+            if not requests_results["users_admin_on_servers_1"]:
+                requests_results["users_admin_on_servers_1"] = []
+            if not requests_results["users_admin_on_servers_2"]:
+                requests_results["users_admin_on_servers_2"] = []
 
-        users_admin_on_servers_all_data = (
-            requests_results["users_admin_on_servers_1"]
-            + requests_results["users_admin_on_servers_2"]
-        )
-        users_admin_on_servers_all_data = [
-            dict(t) for t in {tuple(d.items()) for d in users_admin_on_servers_all_data}
-        ]
-        users_admin_on_servers = generic_computing.getCountValueFromKey(
-            users_admin_on_servers_all_data, "computer"
-        )
-        users_admin_on_servers_list = generic_computing.getListAdminTo(
-            users_admin_on_servers_all_data,
-            "computer",
-            "user",
-        )
-
-        if users_admin_on_servers is not None and users_admin_on_servers != {}:
-            servers_with_most_paths = users_admin_on_servers[
-                list(users_admin_on_servers.keys())[0]
+            users_admin_on_servers_all_data = (
+                requests_results["users_admin_on_servers_1"]
+                + requests_results["users_admin_on_servers_2"]
+            )
+            users_admin_on_servers_all_data = [
+                dict(t) for t in {tuple(d.items()) for d in users_admin_on_servers_all_data}
             ]
-        else:
-            servers_with_most_paths = []
+            users_admin_on_servers = generic_computing.getCountValueFromKey(
+                users_admin_on_servers_all_data, "computer"
+            )
+            users_admin_on_servers_list = generic_computing.getListAdminTo(
+                users_admin_on_servers_all_data,
+                "computer",
+                "user",
+            )
 
-        requests_results["users_admin_on_servers_list"] = users_admin_on_servers_list
-        requests_results["servers_with_most_paths"] = servers_with_most_paths
-        requests_results["users_admin_on_servers"] = users_admin_on_servers
-        requests_results["users_admin_on_servers_all_data"] = (
-            users_admin_on_servers_all_data
-        )
+            if users_admin_on_servers is not None and users_admin_on_servers != {}:
+                servers_with_most_paths = users_admin_on_servers[
+                    list(users_admin_on_servers.keys())[0]
+                ]
+            else:
+                servers_with_most_paths = []
+
+            requests_results["users_admin_on_servers_list"] = users_admin_on_servers_list
+            requests_results["servers_with_most_paths"] = servers_with_most_paths
+            requests_results["users_admin_on_servers"] = users_admin_on_servers
+            requests_results["users_admin_on_servers_all_data"] = (
+                users_admin_on_servers_all_data
+            )
+        except KeyError as ke:
+            print(f"KeyError: {ke}")
 
         # Dico for ACL anomaly and futur other controls to retrieve paths to DA on computer ID
         dico_paths_computers_to_DA = {}
