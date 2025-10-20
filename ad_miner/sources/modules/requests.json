@@ -97,7 +97,7 @@
     },
     "set_dc": {
         "name": "Set dc=TRUE to computers that are domain controllers)",
-        "request": "MATCH (c:Computer)-[:MemberOf*1..3]->(g:Group) WHERE g.objectid ENDS WITH \"-516\" OR g.objectid ENDS WITH \"-521\" SET c.is_dc=TRUE",
+        "request": "MATCH (c:Computer)-[:MemberOf*1..$recursive_level$]->(g:Group) WHERE g.objectid ENDS WITH \"-516\" OR g.objectid ENDS WITH \"-521\" SET c.is_dc=TRUE",
         "output_type": "list",
         "is_a_write_request": "true"
     },
@@ -169,7 +169,7 @@
     },
     "set_da": {
         "name": "Set da=TRUE to users that are domain admins or administrators or enterprise admin",
-        "request": "MATCH (c:User)-[:MemberOf*1..3]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" SET c.is_da=TRUE, c.da_types=[]",
+        "request": "MATCH (c:User)-[:MemberOf*1..$recursive_level$]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" SET c.is_da=TRUE, c.da_types=[]",
         "output_type": "list",
         "is_a_write_request": "true",
         "_comment": "-512 for DA, -518 for Schema admin, -519 for Enterprise Admin, -525 for Protected Users, -526 for Key Admin, -527 for Entreprise Key Admin, -544 for Builtin Admin"
@@ -183,7 +183,7 @@
     },
     "set_da_types": {
         "name": "Set the da type (domain, enterprise, key or builtin)",
-        "request": "MATCH (c:User)-[:MemberOf*1..3]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-525\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" WITH c,g, CASE WHEN g.objectid ENDS WITH \"-512\" THEN \"Domain Admin\" WHEN g.objectid ENDS WITH \"-518\" THEN \"Schema Admin\" WHEN g.objectid ENDS WITH \"-519\" THEN \"Enterprise Admin\" WHEN g.objectid ENDS WITH \"-525\" THEN \"Protected Users\" WHEN g.objectid ENDS WITH \"-526\" THEN \"_ Key Admin\" WHEN g.objectid ENDS WITH \"-527\" THEN \"Enterprise Key Admin\" WHEN g.objectid ENDS WITH \"-544\" THEN \"Builtin Administrator\" ELSE null END AS da_type SET c.da_types = c.da_types + da_type",
+        "request": "MATCH (c:User)-[:MemberOf*1..$recursive_level$]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-525\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" WITH c,g, CASE WHEN g.objectid ENDS WITH \"-512\" THEN \"Domain Admin\" WHEN g.objectid ENDS WITH \"-518\" THEN \"Schema Admin\" WHEN g.objectid ENDS WITH \"-519\" THEN \"Enterprise Admin\" WHEN g.objectid ENDS WITH \"-525\" THEN \"Protected Users\" WHEN g.objectid ENDS WITH \"-526\" THEN \"_ Key Admin\" WHEN g.objectid ENDS WITH \"-527\" THEN \"Enterprise Key Admin\" WHEN g.objectid ENDS WITH \"-544\" THEN \"Builtin Administrator\" ELSE null END AS da_type SET c.da_types = c.da_types + da_type",
         "output_type": "list",
         "is_a_write_request": "true",
         "_comment": "for unknown reasons checking the whole condition has to be checked twice or it doesn't work",
@@ -191,7 +191,7 @@
     },
     "set_dag": {
         "name": "Set da=TRUE to groups that are domain admins or administrators or enterprise admin",
-        "request": "MATCH (c:Group)-[:MemberOf*1..3]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" SET c.is_da=TRUE",
+        "request": "MATCH (c:Group)-[:MemberOf*1..$recursive_level$]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" SET c.is_da=TRUE",
         "output_type": "list",
         "is_a_write_request": "true",
         "_comment": "-512 for DA, -518 for Schema admin, -519 for Enterprise Admin, -525 for Protected Users, -526 for Key Admin, -527 for Entreprise Key Admin, -544 for Builtin Admin"
@@ -199,7 +199,7 @@
     },
     "set_dag_types": {
         "name": "Set the da type (domain, enterprise, key or builtin)",
-        "request": "MATCH (c:Group)-[:MemberOf*1..3]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-525\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" WITH c,g, CASE WHEN g.objectid ENDS WITH \"-512\" THEN \"Domain Admin\" WHEN g.objectid ENDS WITH \"-518\" THEN \"Schema Admin\" WHEN g.objectid ENDS WITH \"-519\" THEN \"Enterprise Admin\" WHEN g.objectid ENDS WITH \"-525\" THEN \"Protected Users\" WHEN g.objectid ENDS WITH \"-526\" THEN \"_ Key Admin\" WHEN g.objectid ENDS WITH \"-527\" THEN \"Enterprise Key Admin\" WHEN g.objectid ENDS WITH \"-544\" THEN \"Builtin Administrator\" ELSE null END AS da_type SET c.da_types = c.da_types + da_type",
+        "request": "MATCH (c:Group)-[:MemberOf*1..$recursive_level$]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-525\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" WITH c,g, CASE WHEN g.objectid ENDS WITH \"-512\" THEN \"Domain Admin\" WHEN g.objectid ENDS WITH \"-518\" THEN \"Schema Admin\" WHEN g.objectid ENDS WITH \"-519\" THEN \"Enterprise Admin\" WHEN g.objectid ENDS WITH \"-525\" THEN \"Protected Users\" WHEN g.objectid ENDS WITH \"-526\" THEN \"_ Key Admin\" WHEN g.objectid ENDS WITH \"-527\" THEN \"Enterprise Key Admin\" WHEN g.objectid ENDS WITH \"-544\" THEN \"Builtin Administrator\" ELSE null END AS da_type SET c.da_types = c.da_types + da_type",
         "output_type": "list",
         "is_a_write_request": "true",
         "_comment": "for unknown reasons checking the whole condition has to be checked twice or it doesn't work",
@@ -229,14 +229,14 @@
     },
     "set_dac": {
         "name": "Set dac=TRUE to computers that are domain admins or administrators or enterprise admin and not DC computer",
-        "request": "MATCH (c:Computer{is_dc:False})-[:MemberOf*1..3]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" SET c.is_dac=TRUE, c.dac_types=[]",
+        "request": "MATCH (c:Computer{is_dc:False})-[:MemberOf*1..$recursive_level$]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" SET c.is_dac=TRUE, c.dac_types=[]",
         "output_type": "list",
         "is_a_write_request": "true",
         "_comment": "-512 for DA, -518 for Schema admin, -519 for Enterprise Admin, -525 for Protected Users, -526 for Key Admin, -527 for Entreprise Key Admin, -544 for Builtin Admin"
     },
     "set_dac_types": {
         "name": "Set the dac types (domain, enterprise, key or builtin)",
-        "request": "MATCH (c:Computer)-[:MemberOf*1..3]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-525\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" WITH c,g, CASE WHEN g.objectid ENDS WITH \"-512\" THEN \"Domain Admin\" WHEN g.objectid ENDS WITH \"-518\" THEN \"Schema Admin\" WHEN g.objectid ENDS WITH \"-519\" THEN \"Enterprise Admin\" WHEN g.objectid ENDS WITH \"-525\" THEN \"Protected Users\" WHEN g.objectid ENDS WITH \"-526\" THEN \"_ Key Admin\" WHEN g.objectid ENDS WITH \"-527\" THEN \"Enterprise Key Admin\" WHEN g.objectid ENDS WITH \"-544\" THEN \"Builtin Administrator\" ELSE null END AS da_type SET c.da_types = c.da_types + da_type",
+        "request": "MATCH (c:Computer)-[:MemberOf*1..$recursive_level$]->(g:Group) WHERE g.objectid ENDS WITH \"-512\" OR g.objectid ENDS WITH \"-518\" OR g.objectid ENDS WITH \"-519\" OR g.objectid ENDS WITH \"-525\" OR g.objectid ENDS WITH \"-526\" OR g.objectid ENDS WITH \"-527\" OR g.objectid ENDS WITH \"-544\" WITH c,g, CASE WHEN g.objectid ENDS WITH \"-512\" THEN \"Domain Admin\" WHEN g.objectid ENDS WITH \"-518\" THEN \"Schema Admin\" WHEN g.objectid ENDS WITH \"-519\" THEN \"Enterprise Admin\" WHEN g.objectid ENDS WITH \"-525\" THEN \"Protected Users\" WHEN g.objectid ENDS WITH \"-526\" THEN \"_ Key Admin\" WHEN g.objectid ENDS WITH \"-527\" THEN \"Enterprise Key Admin\" WHEN g.objectid ENDS WITH \"-544\" THEN \"Builtin Administrator\" ELSE null END AS da_type SET c.da_types = c.da_types + da_type",
         "output_type": "list",
         "is_a_write_request": "true",
         "_comment": "for unknown reasons checking the whole condition has to be checked twice or it doesn't work",
@@ -365,7 +365,7 @@
     },
     "set_is_adcs": {
         "name": "Set is_adcs to ADCS servers",
-        "request": "MATCH (g:Group) WHERE g.objectid ENDS WITH '-517' MATCH (c:Computer)-[r:MemberOf*1..4]->(g) SET c.is_adcs=TRUE RETURN c.domain AS domain, c.name AS name", 
+        "request": "MATCH (g:Group) WHERE g.objectid ENDS WITH '-517' MATCH (c:Computer)-[r:MemberOf*1..$recursive_level$]->(g) SET c.is_adcs=TRUE RETURN c.domain AS domain, c.name AS name", 
         "output_type": "dict",
         "is_a_write_request": "true"
     },
@@ -491,14 +491,14 @@
     },
     "users_shadow_credentials": {
         "name": "Non privileged users that can impersonate privileged users",
-        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 MATCH p=allShortestPaths((u)-[r:MemberOf|AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl*1..3]->(m:User{is_da:true,enabled:true})) RETURN p ",
+        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 MATCH p=allShortestPaths((u)-[r:MemberOf|AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl*1..$recursive_level$]->(m:User{is_da:true,enabled:true})) RETURN p ",
         "scope_query": "MATCH (u:User{is_da:false, enabled:true}) return count(u)",
         "output_type": "Graph"
     },
     "users_shadow_credentials_to_non_admins": {
         "name": "Non privileged users that can be impersonated by non privileged users",
         "is_a_gds_request": "true",
-        "request": "CALL {MATCH (s:User{enabled:true, is_da:false}) RETURN s UNION ALL MATCH (s:Group{is_dag:false,is_da:false}) RETURN s} WITH s ORDER BY s.name SKIP PARAM1 LIMIT PARAM2 MATCH p=shortestPath((s)-[r:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl*1..3]->(t:User{enabled:true})) WHERE s <> t AND s.is_group_account_operator IS NULL RETURN p",
+        "request": "CALL {MATCH (s:User{enabled:true, is_da:false}) RETURN s UNION ALL MATCH (s:Group{is_dag:false,is_da:false}) RETURN s} WITH s ORDER BY s.name SKIP PARAM1 LIMIT PARAM2 MATCH p=shortestPath((s)-[r:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl*1..$recursive_level$]->(t:User{enabled:true})) WHERE s <> t AND s.is_group_account_operator IS NULL RETURN p",
         "create_gds_graph": "CALL gds.graph.project.cypher('graph_users_shadow_credentials_to_non_admins', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "gds_request": "MATCH (target:User{enabled:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_users_shadow_credentials_to_non_admins', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE starting_node <> target AND starting_node.is_group_account_operator IS NULL AND starting_node.is_account_operator IS NULL AND ((starting_node:User AND starting_node.enabled AND NOT starting_node.is_da) OR (starting_node:Group AND NOT starting_node.is_dag AND NOT starting_node.is_da)) RETURN path as p",
         "drop_gds_graph": "CALL gds.graph.drop('graph_users_shadow_credentials_to_non_admins', false) YIELD graphName",
@@ -604,7 +604,7 @@
     },
     "computers_members_high_privilege": {
         "name": "High privilege group computer member",
-        "request": "MATCH(c:Computer{is_dc:false})-[r:MemberOf*1..4]->(g:Group{is_da:true}) WHERE NOT c.name IS NULL RETURN distinct(c.name) AS computer, g.name AS group, g.domain AS domain",
+        "request": "MATCH(c:Computer{is_dc:false})-[r:MemberOf*1..$recursive_level$]->(g:Group{is_da:true}) WHERE NOT c.name IS NULL RETURN distinct(c.name) AS computer, g.name AS group, g.domain AS domain",
         "output_type": "dict"
     },
     "objects_to_domain_admin": {
@@ -621,18 +621,18 @@
     },
     "objects_to_adcs": {
         "name": "Objects with path to ADCS servers",
-        "request": "MATCH (o{path_candidate:true}) WHERE NOT o.name IS NULL WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=(o)-[rrr:MemberOf*0..4]->()-[rr:AdminTo]->(c{is_adcs:true}) RETURN DISTINCT(p) as p",
+        "request": "MATCH (o{path_candidate:true}) WHERE NOT o.name IS NULL WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=(o)-[rrr:MemberOf*0..$recursive_level$]->()-[rr:AdminTo]->(c{is_adcs:true}) RETURN DISTINCT(p) as p",
         "output_type": "Graph",
         "scope_query": "MATCH (m{path_candidate:true}) WHERE NOT m.name IS NULL RETURN count(m)"
     },
     "users_admin_on_computers": {
         "name": "Users admin on machines",
-        "request": "MATCH p=(n:User{enabled:true})-[r:MemberOf|AdminTo*1..4]->(m:Computer) WHERE n:User AND n.enabled=true RETURN distinct(n.name) AS user,m.name AS computer,m.has_path_to_da AS has_path_to_da, ID(n) as user_id",
+        "request": "MATCH p=(n:User{enabled:true})-[r:MemberOf|AdminTo*1..$recursive_level$]->(m:Computer) WHERE n:User AND n.enabled=true RETURN distinct(n.name) AS user,m.name AS computer,m.has_path_to_da AS has_path_to_da, ID(n) as user_id",
         "output_type": "dict"
     },
     "users_admin_on_servers_1": {
         "name": "Users admin on servers n\u00b01",
-        "request": "MATCH (n:User{enabled:true,is_da:false}) WHERE NOT n.name IS NULL WITH n ORDER BY ID(n) SKIP PARAM1 LIMIT PARAM2 MATCH p=(n)-[r:MemberOf*1..4]->(g:Group)-[r1:$properties$]->(u:Computer) WITH LENGTH(p) as pathLength, p, n, u WHERE NONE (x in NODES(p)[1..(pathLength-1)] WHERE x.objectid = u.objectid) AND NOT n.objectid = u.objectid RETURN n.name AS user, u.name AS computer, u.has_path_to_da as has_path_to_da",
+        "request": "MATCH (n:User{enabled:true,is_da:false}) WHERE NOT n.name IS NULL WITH n ORDER BY ID(n) SKIP PARAM1 LIMIT PARAM2 MATCH p=(n)-[r:MemberOf*1..$recursive_level$]->(g:Group)-[r1:$properties$]->(u:Computer) WITH LENGTH(p) as pathLength, p, n, u WHERE NONE (x in NODES(p)[1..(pathLength-1)] WHERE x.objectid = u.objectid) AND NOT n.objectid = u.objectid RETURN n.name AS user, u.name AS computer, u.has_path_to_da as has_path_to_da",
         "scope_query": "MATCH (n:User{enabled:true,is_da:false}) WHERE NOT n.name IS NULL RETURN count(n)",
         "output_type": "dict"
     },
@@ -644,7 +644,7 @@
     },
     "computers_admin_on_computers": {
         "name": "Number of computers admin of computers",
-        "request": "CALL{MATCH (c1:Computer)-[r1:AdminTo]->(c2:Computer) WHERE c1.name IS NOT NULL AND c2.name IS NOT NULL AND c1 <> c2 RETURN c1.name AS source_computer, c2.name AS target_computer, c2.has_path_to_da AS has_path_to_da UNION ALL MATCH (c1:Computer)-[r2:MemberOf*1..4]->(g:Group)-[r3:AdminTo]->(c2:Computer) WHERE c1.name IS NOT NULL AND c2.name IS NOT NULL AND c1 <> c2 RETURN c1.name AS source_computer, c2.name AS target_computer, c2.has_path_to_da AS has_path_to_da}  RETURN distinct(source_computer), target_computer, has_path_to_da",
+        "request": "CALL{MATCH (c1:Computer)-[r1:AdminTo]->(c2:Computer) WHERE c1.name IS NOT NULL AND c2.name IS NOT NULL AND c1 <> c2 RETURN c1.name AS source_computer, c2.name AS target_computer, c2.has_path_to_da AS has_path_to_da UNION ALL MATCH (c1:Computer)-[r2:MemberOf*1..$recursive_level$]->(g:Group)-[r3:AdminTo]->(c2:Computer) WHERE c1.name IS NOT NULL AND c2.name IS NOT NULL AND c1 <> c2 RETURN c1.name AS source_computer, c2.name AS target_computer, c2.has_path_to_da AS has_path_to_da}  RETURN distinct(source_computer), target_computer, has_path_to_da",
         "output_type": "dict"
     },
     "domain_map_trust": {
@@ -758,7 +758,7 @@
     },
     "can_read_gmsapassword_of_adm": {
         "name": "Objects allowed to read the GMSA of objects with admincount=True",
-        "request": "CALL {MATCH (o{path_candidate:true}) WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=((o)-[:MemberOf*1..7]->(g:Group)-[:ReadGMSAPassword]->(u:User{is_admin:true})) WHERE o.name<>u.name RETURN DISTINCT(p) UNION ALL MATCH (o{path_candidate:true}) WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=((o)-[:ReadGMSAPassword]->(u:User{is_admin:true})) WHERE o.name<>u.name RETURN DISTINCT(p) } RETURN p",
+        "request": "CALL {MATCH (o{path_candidate:true}) WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=((o)-[:MemberOf*1..$recursive_level$]->(g:Group)-[:ReadGMSAPassword]->(u:User{is_admin:true})) WHERE o.name<>u.name RETURN DISTINCT(p) UNION ALL MATCH (o{path_candidate:true}) WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=((o)-[:ReadGMSAPassword]->(u:User{is_admin:true})) WHERE o.name<>u.name RETURN DISTINCT(p) } RETURN p",
         "output_type": "Graph",
         "scope_query": "MATCH (o{path_candidate:true}) RETURN count(o)"
     },
@@ -786,7 +786,7 @@
         "is_a_gds_request": "true",
         "create_gds_graph": "CALL gds.graph.project.cypher('graph_vuln_permissions_adminsdholder', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$properties$]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_vuln_permissions_adminsdholder', false) YIELD graphName",
-        "request": "MATCH (n:User{path_candidate:true}) WITH n ORDER BY n.name SKIP PARAM1 LIMIT PARAM2 MATCH p = shortestPath((n)-[r:$properties$*1..4]->(target1{is_adminsdholder:true})) WHERE n<>target1 AND NOT ANY(no in nodes(p) WHERE (no.is_da=true AND (no.domain=target1.domain OR target1.domain CONTAINS \".\" + no.domain))) RETURN distinct(p) AS p",
+        "request": "MATCH (n:User{path_candidate:true}) WITH n ORDER BY n.name SKIP PARAM1 LIMIT PARAM2 MATCH p = shortestPath((n)-[r:$properties$*1..$recursive_level$]->(target1{is_adminsdholder:true})) WHERE n<>target1 AND NOT ANY(no in nodes(p) WHERE (no.is_da=true AND (no.domain=target1.domain OR target1.domain CONTAINS \".\" + no.domain))) RETURN distinct(p) AS p",
         "gds_request": "MATCH (target{is_adminsdholder:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_vuln_permissions_adminsdholder', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE starting_node:User AND target <> starting_node AND starting_node.path_candidate = TRUE AND NOT ANY(no in nodes(path) WHERE (no.is_da=true AND (no.domain=target.domain OR target.domain CONTAINS \".\" + no.domain))) RETURN path as p",
         "output_type": "Graph",
         "scope_query": "MATCH (n:User{path_candidate:true}) RETURN count(n)",
@@ -873,12 +873,12 @@
     },
     "cross_domain_local_admins":{
         "name": "Users that are local admins cross-domain",
-        "request": "MATCH p=(u{enabled:true})-[r:MemberOf*0..4]->()-[rr:AdminTo]->(c:Computer) WHERE c.ghost_computer IS NULL AND u.domain <> c.domain AND NOT c.domain CONTAINS u.domain RETURN DISTINCT p",
+        "request": "MATCH p=(u{enabled:true})-[r:MemberOf*0..$recursive_level$]->()-[rr:AdminTo]->(c:Computer) WHERE c.ghost_computer IS NULL AND u.domain <> c.domain AND NOT c.domain CONTAINS u.domain RETURN DISTINCT p",
         "output_type": "Graph"
     },
     "cross_domain_domain_admins":{
         "name": "Users that are domain admins cross-domain",
-        "request": "MATCH p=(u{enabled:true})-[r:MemberOf*1..4]->(g:Group{is_da:true}) WHERE u.domain <> g.domain AND NOT g.domain CONTAINS u.domain return p",
+        "request": "MATCH p=(u{enabled:true})-[r:MemberOf*1..$recursive_level$]->(g:Group{is_da:true}) WHERE u.domain <> g.domain AND NOT g.domain CONTAINS u.domain return p",
         "output_type": "Graph"
     },
     "primaryGroupID_lower_than_1000": {
