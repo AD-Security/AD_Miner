@@ -270,20 +270,20 @@
     },
     "set_is_operator_member": {
         "name": "Set is_operator_member to objects member of Operator Groups (cf: ACCOUNT OPERATORS, SERVER OPERATORS, BACKUP OPERATORS, PRINT OPERATORS)",
-        "request": "MATCH (o:User)-[r:MemberOf*1..5]->(g:Group{is_group_operator:True}) WHERE o.is_da=false OR o.domain <> g.domain SET o.is_operator_member=true SET o.is_account_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN true ELSE o.is_account_operator END, o.is_type_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN \"ACCOUNT OPERATOR\" ELSE o.is_type_operator END, o.is_backup_operator = CASE WHEN g.objectid ENDS WITH \"-551\" THEN true ELSE o.is_backup_operator END, o.is_type_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN \"BACKUP OPERATOR\" ELSE o.is_type_operator END, o.is_server_operator = CASE WHEN g.objectid ENDS WITH \"-549\" THEN true ELSE o.is_server_operator END, o.is_type_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN \"SERVER OPERATOR\" ELSE o.is_type_operator END, o.is_print_operator = CASE WHEN g.objectid ENDS WITH \"-550\" THEN true ELSE o.is_print_operator END, o.is_type_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN \"PRINT OPERATOR\" ELSE o.is_type_operator END ",
+        "request": "MATCH (o:User)-[r:MemberOf*1..$recursive_level$]->(g:Group{is_group_operator:True}) WHERE o.is_da=false OR o.domain <> g.domain SET o.is_operator_member=true SET o.is_account_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN true ELSE o.is_account_operator END, o.is_type_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN \"ACCOUNT OPERATOR\" ELSE o.is_type_operator END, o.is_backup_operator = CASE WHEN g.objectid ENDS WITH \"-551\" THEN true ELSE o.is_backup_operator END, o.is_type_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN \"BACKUP OPERATOR\" ELSE o.is_type_operator END, o.is_server_operator = CASE WHEN g.objectid ENDS WITH \"-549\" THEN true ELSE o.is_server_operator END, o.is_type_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN \"SERVER OPERATOR\" ELSE o.is_type_operator END, o.is_print_operator = CASE WHEN g.objectid ENDS WITH \"-550\" THEN true ELSE o.is_print_operator END, o.is_type_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN \"PRINT OPERATOR\" ELSE o.is_type_operator END ",
         "output_type": "list",
         "is_a_write_request": "true"
     },
     "set_dcsync1": {
         "name": "Set dcsync=TRUE to nodes that can DCSync (GetChanges/GetChangesAll)",
-        "request": "MATCH (n1) WITH n1 ORDER BY n1.name SKIP PARAM1 LIMIT PARAM2 MATCH p=allShortestPaths((n1)-[:MemberOf|GetChanges*1..5]->(u:Domain)) WHERE n1 <> u WITH n1 MATCH p2=(n1)-[:MemberOf|GetChangesAll*1..5]->(u:Domain) WHERE n1 <> u AND NOT n1.name IS NULL AND (((n1.is_da IS NULL OR n1.is_da=FALSE) AND (n1.is_dc IS NULL OR n1.is_dc=FALSE)) OR (NOT u.domain CONTAINS '.' + n1.domain AND n1.domain <> u.domain)) SET n1.can_dcsync=TRUE RETURN DISTINCT p2 as p",
+        "request": "MATCH (n1) WITH n1 ORDER BY n1.name SKIP PARAM1 LIMIT PARAM2 MATCH p=allShortestPaths((n1)-[:MemberOf|GetChanges*1..$recursive_level$]->(u:Domain)) WHERE n1 <> u WITH n1 MATCH p2=(n1)-[:MemberOf|GetChangesAll*1..$recursive_level$]->(u:Domain) WHERE n1 <> u AND NOT n1.name IS NULL AND (((n1.is_da IS NULL OR n1.is_da=FALSE) AND (n1.is_dc IS NULL OR n1.is_dc=FALSE)) OR (NOT u.domain CONTAINS '.' + n1.domain AND n1.domain <> u.domain)) SET n1.can_dcsync=TRUE RETURN DISTINCT p2 as p",
         "output_type": "Graph",
         "scope_query": "MATCH (n1) return count(n1)",
         "is_a_write_request": "true"
     },
     "set_dcsync2": {
         "name": "Set dcsync=TRUE to nodes that can DCSync (GenericAll/AllExtendedRights)",
-        "request": "MATCH (n2) WITH n2 ORDER BY n2.name SKIP PARAM1 LIMIT PARAM2 MATCH p3=allShortestPaths((n2)-[:MemberOf|GenericAll|AllExtendedRights*1..5]->(u:Domain)) WHERE n2 <> u AND NOT n2.name IS NULL AND (((n2.is_da IS NULL OR n2.is_da=FALSE) AND (n2.is_dc IS NULL OR n2.is_dc=FALSE)) OR (NOT u.domain CONTAINS '.' + n2.domain AND n2.domain <> u.domain)) SET n2.can_dcsync=TRUE RETURN DISTINCT p3 as p",
+        "request": "MATCH (n2) WITH n2 ORDER BY n2.name SKIP PARAM1 LIMIT PARAM2 MATCH p3=allShortestPaths((n2)-[:MemberOf|GenericAll|AllExtendedRights*1..$recursive_level$]->(u:Domain)) WHERE n2 <> u AND NOT n2.name IS NULL AND (((n2.is_da IS NULL OR n2.is_da=FALSE) AND (n2.is_dc IS NULL OR n2.is_dc=FALSE)) OR (NOT u.domain CONTAINS '.' + n2.domain AND n2.domain <> u.domain)) SET n2.can_dcsync=TRUE RETURN DISTINCT p3 as p",
         "output_type": "Graph",
         "scope_query": "MATCH (n1) return count(n1)",
         "is_a_write_request": "true"
@@ -331,7 +331,7 @@
     },
     "set_groups_members_count": {
         "name": "Set members_count to groups counting users (recursivity = 5)",
-        "request": "MATCH  (g:Group) WITH g ORDER BY g.name SKIP PARAM1 LIMIT PARAM2 MATCH (u:User)-[:MemberOf*1..5]->(g) WHERE NOT u.name IS NULL AND NOT g.name IS NULL WITH g AS g1, count(u) AS memberscount SET g1.members_count=memberscount",
+        "request": "MATCH  (g:Group) WITH g ORDER BY g.name SKIP PARAM1 LIMIT PARAM2 MATCH (u:User)-[:MemberOf*1..$recursive_level$]->(g) WHERE NOT u.name IS NULL AND NOT g.name IS NULL WITH g AS g1, count(u) AS memberscount SET g1.members_count=memberscount",
         "output_type": "list",
         "scope_query": "MATCH (g:Group) RETURN count(g)",
         "is_a_write_request": "true",
@@ -339,7 +339,7 @@
     },
     "set_groups_members_count_computers": {
         "name": "Set members_count to groups counting computers (recursivity = 5)",
-        "request": "MATCH (g:Group) WITH g ORDER BY g.name SKIP PARAM1 LIMIT PARAM2 MATCH (u:Computer)-[:MemberOf*1..5]->(g) WHERE NOT u.name IS NULL AND NOT g.name IS NULL WITH g AS g1, count(u) AS memberscount SET g1.members_count= COALESCE(g1.members_count, 0) + memberscount",
+        "request": "MATCH (g:Group) WITH g ORDER BY g.name SKIP PARAM1 LIMIT PARAM2 MATCH (u:Computer)-[:MemberOf*1..$recursive_level$]->(g) WHERE NOT u.name IS NULL AND NOT g.name IS NULL WITH g AS g1, count(u) AS memberscount SET g1.members_count= COALESCE(g1.members_count, 0) + memberscount",
         "output_type": "list",
         "scope_query": "MATCH (g:Group) RETURN count(g)",
         "is_a_write_request": "true",
@@ -702,19 +702,19 @@
     },
     "rdp_access": {
         "name": "Users with RDP-access to Computers ",
-        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 CALL {WITH u MATCH p=(u)-[r1:MemberOf*1..5]->(m:Group)-[r2:CanRDP]->(c:Computer) RETURN u.name as user, c.name as computer UNION ALL WITH u MATCH p=(u)-[r2:CanRDP]->(c:Computer) RETURN u.name as user, c.name as computer} RETURN DISTINCT user, computer",
+        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 CALL {WITH u MATCH p=(u)-[r1:MemberOf*1..$recursive_level$]->(m:Group)-[r2:CanRDP]->(c:Computer) RETURN u.name as user, c.name as computer UNION ALL WITH u MATCH p=(u)-[r2:CanRDP]->(c:Computer) RETURN u.name as user, c.name as computer} RETURN DISTINCT user, computer",
         "scope_query": "MATCH (u:User{enabled:true,is_da:false}) RETURN count(u)",
         "output_type": "dict"
     },
     "dc_impersonation": {
         "name": "Non-domain admins that can directly or indirectly impersonate a Domain Controller ",
-        "request": "MATCH (u{ou_candidate:true}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 CALL{WITH u MATCH p=(u)-[r:MemberOf*1..5]->(g:Group)-[r3:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:Computer{is_dc:true}) RETURN p UNION ALL WITH u MATCH p=(u)-[r3:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:Computer{is_dc:true}) RETURN p }RETURN DISTINCT p",
+        "request": "MATCH (u{ou_candidate:true}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 CALL{WITH u MATCH p=(u)-[r:MemberOf*1..$recursive_level$]->(g:Group)-[r3:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:Computer{is_dc:true}) RETURN p UNION ALL WITH u MATCH p=(u)-[r3:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:Computer{is_dc:true}) RETURN p }RETURN DISTINCT p",
         "scope_query": "MATCH (u{ou_candidate:true}) RETURN count(u)",
         "output_type": "Graph"
     },
     "graph_rbcd": {
         "name": "Builds RBCD attack path graph and sets is_rbcd_target attribute ",
-        "request": "MATCH (m:Computer{is_server:true}) WITH m SKIP PARAM1 LIMIT PARAM2 MATCH p=(u:User{path_candidate:true})-[rr:MemberOf|AddMember*0..5]->()-[r:GenericAll|GenericWrite|WriteDACL|AllExtendedRights|Owns]->(m) SET m.is_rbcd_target=TRUE RETURN p",
+        "request": "MATCH (m:Computer{is_server:true}) WITH m SKIP PARAM1 LIMIT PARAM2 MATCH p=(u:User{path_candidate:true})-[rr:MemberOf|AddMember*0..$recursive_level$]->()-[r:GenericAll|GenericWrite|WriteDACL|AllExtendedRights|Owns]->(m) SET m.is_rbcd_target=TRUE RETURN p",
         "output_type": "Graph",
         "is_a_write_request": "true",
         "scope_query": "MATCH (m:Computer{is_server:true}) RETURN count(m)"
