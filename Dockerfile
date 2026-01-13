@@ -8,4 +8,4 @@ RUN apt-get update && apt-get install -y git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install AD-Miner from the Git repository
-RUN pip install --no-cache-dir 'git+https://github.com/Mazars-Tech/AD_Miner.git'
+RUN pip install --no-cache-dir 'git+https://github.com/AD-Security/AD_Miner.git'
