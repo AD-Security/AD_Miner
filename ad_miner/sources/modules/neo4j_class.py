@@ -1114,9 +1114,9 @@ class Neo4j:
         logger.print_debug("[Done]")
 
         try:
-            if not requests_results["users_admin_on_servers_1"]:
+            if "users_admin_on_servers_1" not in requests_results:
                 requests_results["users_admin_on_servers_1"] = []
-            if not requests_results["users_admin_on_servers_2"]:
+            if "users_admin_on_servers_2" not in requests_results:
                 requests_results["users_admin_on_servers_2"] = []
 
             users_admin_on_servers_all_data = (
@@ -1149,7 +1149,7 @@ class Neo4j:
                 users_admin_on_servers_all_data
             )
         except KeyError as ke:
-            print(f"KeyError: {ke}")
+            logger.print_error(f"KeyError while generating users admin on servers data: {ke}")
 
         # Dico for ACL anomaly and futur other controls to retrieve paths to DA on computer ID
         dico_paths_computers_to_DA = {}
