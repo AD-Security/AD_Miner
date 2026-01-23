@@ -678,13 +678,13 @@
     },
     "rdp_access": {
         "name": "Users with RDP-access to Computers ",
-        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY ID(u) SKIP PARAM1 LIMIT PARAM2 MATCH p=(u)-[r1:MemberOf*0..5]->(m:Group)-[r2:CanRDP]->(c:Computer) RETURN u.name as user, c.name as computer",
+        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY ID(u) SKIP PARAM1 LIMIT PARAM2 MATCH p=(u)-[r1:MemberOf*0..5]->()-[r2:CanRDP]->(c:Computer) RETURN u.name as user, c.name as computer",
         "scope_query": "MATCH (u:User{enabled:true,is_da:false}) RETURN count(u)",
         "output_type": "dict"
     },
     "dc_impersonation": {
         "name": "Non-domain admins that can directly or indirectly impersonate a Domain Controller ",
-        "request": "MATCH (u{ou_candidate:true}) WITH u ORDER BY ID(u) SKIP PARAM1 LIMIT PARAM2 MATCH p=(u)-[r:MemberOf*0..3]->(g:Group)-[r3:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:Computer{is_dc:true}) RETURN DISTINCT p",
+        "request": "MATCH (u{ou_candidate:true}) WITH u ORDER BY ID(u) SKIP PARAM1 LIMIT PARAM2 MATCH p=(u)-[r:MemberOf*0..3]->()-[r3:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:Computer{is_dc:true}) RETURN DISTINCT p",
         "scope_query": "MATCH (u{ou_candidate:true}) RETURN count(u)",
         "output_type": "Graph"
     },
@@ -734,7 +734,7 @@
     },
     "can_read_gmsapassword_of_adm": {
         "name": "Objects allowed to read the GMSA of objects with admincount=True",
-        "request": "MATCH (o{path_candidate:true}) WITH o ORDER BY ID(o) SKIP PARAM1 LIMIT PARAM2 MATCH p=((o)-[:MemberOf*0..5]->(g:Group)-[:ReadGMSAPassword]->(u:User{is_admin:true})) WHERE o.name<>u.name RETURN DISTINCT(p)",
+        "request": "MATCH (o{path_candidate:true}) WITH o ORDER BY ID(o) SKIP PARAM1 LIMIT PARAM2 MATCH p=((o)-[:MemberOf*0..5]->()-[:ReadGMSAPassword]->(u:User{is_admin:true})) WHERE o.name<>u.name RETURN DISTINCT(p)",
         "output_type": "Graph",
         "scope_query": "MATCH (o{path_candidate:true}) RETURN count(o)"
     },
