@@ -99,10 +99,18 @@ function display_computer(parameter) {
 				rowData2.push(new_dico);
 			}
 		}
+		else if (window.location.href.includes('computers_with_administrators_details')) {
+			if (rowData[i]['Computer'] == parameter) {
+				var new_dico = {};
+				new_dico['Users'] = rowData[i]['Users'];
+				new_dico['Distinguished Name'] = rowData[i]['Distinguished Name'];
+				rowData2.push(new_dico);
+			}
+		}
 		else if (window.location.href.includes('users_rdp_access') || window.location.href.includes('computers_list_of_rdp_users')) {
 			
 			if (rowData[i][keys[0]].includes(parameter)) {
-				const startSubstring = "<p style='visibility:hidden;'>";
+				const startSubstring = "<p style='display: none;'>";
 				const endSubstring = "</p>";
 
 				const startIndex = rowData[i][keys[1]].indexOf(startSubstring) + startSubstring.length;
@@ -130,7 +138,12 @@ function display_computer(parameter) {
 			}
 		}
 	}
-	columnDefs2 = [{field: parameter}];
+	if (window.location.href.includes('computers_with_administrators_details')) {
+		columnDefs2 = [{field: 'Users'},{field: 'Distinguished Name'}]
+	}
+	else {
+		columnDefs2 = [{field: parameter}];
+	}
 	return [rowData2, columnDefs2];
 }
 

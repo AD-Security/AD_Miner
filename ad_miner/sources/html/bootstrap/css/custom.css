@@ -390,3 +390,8 @@ a:hover{
   font-size: small;
   font-weight: 800;
 }
+
+.ag-cell-value i.bi {
+    margin-right: 4px;
+    vertical-align: middle;
+}

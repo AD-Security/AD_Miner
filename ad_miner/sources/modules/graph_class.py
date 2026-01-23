@@ -41,9 +41,7 @@ class Graph:
         self.group_da = group_da
 
     def addDisabledUsers(self, disabled_users):
-        self.disabled_users_dict = {}
-        for d in disabled_users:
-            self.disabled_users_dict[d["name"]] = True
+        self.disabled_users_dict = disabled_users
 
     def addKerberoastableUsers(self, kerberoastable_users):
         self.kerberoastable_users = kerberoastable_users
@@ -80,13 +78,18 @@ class Graph:
                     "OU",
                     "Group",
                     "Domain",
-                    "ADLocalGroup",
                     "Container",
-                    "Unknown",
-                    "Group_cluster",
-                    "Device",
+                    "AZDevice",
                     "AZTenant",
                     "AZRole",
+                    "ADLocalGroup",
+                    "AZApp",
+                    "CertTemplate",
+                    "RootCA",
+                    "EnterpriseCA",
+                    "AIACA",
+                    "NTAuthStore",
+                    "AZServicePrincipal",
                 ]
 
                 if node.labels in list_labels:
@@ -149,6 +152,10 @@ class Graph:
                         "attributes": node_attributes,
                     }
                     self.nodes[path.nodes[i].id] = final_graph_node
+                elif self.nodes[path.nodes[i].id]["position"] == "intermediate" and (
+                    node_position == "end" or node_position == "start"
+                ):
+                    self.nodes[path.nodes[i].id]["position"] = node_position
 
                 if i != 0:
                     relation = {

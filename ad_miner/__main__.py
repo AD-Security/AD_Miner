@@ -8,6 +8,9 @@ import time
 import traceback
 import signal
 import sys
+import subprocess
+import requests
+from importlib.metadata import version, PackageNotFoundError
 
 # Local library imports
 from ad_miner.sources.modules import logger, utils, generic_formating, main_page
@@ -142,6 +145,48 @@ def prepare_render(arguments) -> None:
         shutil.copy2(js_file, folder_name / "js")
 
 
+def get_version_and_commit():
+    # Either using pip(x) you get the version number or in dev environment the git commit
+    try:
+        ver = version("ad-miner")
+    except PackageNotFoundError:
+        ver = "unknown"
+
+    commit = ""
+    try:
+        root = Path(__file__).resolve().parent
+        commit = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"], cwd=root, stderr=subprocess.DEVNULL, text=True
+        ).strip()
+    except Exception:
+        commit = "unknown"
+    return ver, commit
+
+
+def get_last_version():
+    try:
+        r = requests.get("https://www.ad-miner.com/version.json", timeout=0.5)
+        data = r.json()
+        return data["lastversion"]
+    except Exception:
+        return "unreachable"
+
+
+def check_version(lastversion, currentversion):
+    try:
+        last = tuple(map(int, lastversion.lstrip("v").split(".")))
+        current = tuple(map(int, currentversion.lstrip("v").split(".")))
+
+        if last > current:
+            logger.print_error(f"New AD Miner version {lastversion} available.")
+            logger.print_error(
+                "Update with pipx or manually on https://github.com/AD-Security/AD_Miner"
+            )
+            return
+    except Exception:
+        return
+
+
 def main() -> None:
     """Main execution function for the script."""
     start = time.time()
@@ -162,6 +207,12 @@ def main() -> None:
             return
 
     prepare_render(arguments)
+
+    AD_miner_version, AD_miner_commit = get_version_and_commit()
+    arguments.version = AD_miner_version
+    arguments.commit = AD_miner_commit
+
+    check_version(get_last_version(), AD_miner_version)
 
     neo4j_version, extract_date, total_objects, number_relations, boolean_azure = pre_request(
         arguments

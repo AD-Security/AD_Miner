@@ -386,18 +386,28 @@ function getAllEndNodes() {
   }
   return ends;
 }
+function reachableNodesFrom(selectedNode, visited = new Set()) {
+  // Get all reachable nodes from on start node
+  if (visited.has(selectedNode)) return [];
+  visited.add(selectedNode);
+
+  if (dico_nodes[selectedNode].group.includes('end')) {
+    return [selectedNode];
+  }
+
+  var reachableNodes = [selectedNode];
+  var connectedNodes = dico_edges_children[selectedNode];
+  
+  for (let i = 0; i < connectedNodes.length; i++) {
+    reachableNodes = reachableNodes.concat(reachableNodesFrom(connectedNodes[i], visited))
+  }
+  return reachableNodes;
+}
 
 function display_only_path_from_node(node_parameter) {
-  // Get all nodes leading to all ends from a specific node
-  ends = getAllEndNodes();
+  // Get all nodes leading from a specific node
 
-  allPaths = [];
-
-  for (var i = 0; i < ends.length; i++) {
-    allPaths = allPaths.concat(
-      shortestpathToChosenEnd(node_parameter, ends[i]),
-    );
-  }
+  allPaths = reachableNodesFrom(node_parameter);
 
   selected_nodes_id = [...new Set(allPaths)];
 

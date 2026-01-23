@@ -20,25 +20,15 @@ def clean_data_type(data, list_type_to_clean):
             data[k][type_name] = clean_label(data[k][type_name])
     return data
 
-    
+
 def get_label_icon_dictionary():
-    return {
-        "User":"<i class='bi bi-person-fill' title='User'></i>",
-        "Computer": "<i class='bi bi-pc-display' title='Computer'></i>",
-        "Group": "<i class='bi bi-people-fill' title='Group'></i>",
-        "OU": "<i class='bi bi-building' title='OU'></i>",
-        "Container": "<i class='bi bi-box' title='Container'></i>",
-        "Domain": "<i class='bi bi-globe' title='Domain'></i>",
-        "GPO": "<i class='bi bi-journal-text' title='GPO'></i>",
-        "Unknown": "<i class='bi bi-question-circle-fill' title='Unknown'></i>"
-    }
+    return {"User": "<i class='bi bi-person-fill' title='User'></i>", "Computer": "<i class='bi bi-pc-display' title='Computer'></i>", "Group": "<i class='bi bi-people-fill' title='Group'></i>", "ADLocalGroup": "<i class='bi bi-people-fill' title='Group'></i>", "OU": "<i class='bi bi-building' title='OU'></i>", "Container": "<i class='bi bi-box' title='Container'></i>", "Domain": "<i class='bi bi-globe' title='Domain'></i>", "GPO": "<i class='bi bi-journal-text' title='GPO'></i>", "Unknown": "<i class='bi bi-question-circle-fill' title='Unknown'></i>"}
 
 def get_label_icon(name):
     if name in get_label_icon_dictionary():
         return get_label_icon_dictionary()[name]
     else:
         return get_label_icon_dictionary()["Unknown"]
-
 
 
 # format data for grid components format: list of dicts [{key1:value1}, {key2:value2}]
@@ -89,8 +79,9 @@ def formatGridValues3Columns(data, headers, prefix):
                     headers[0]: dict[headers[0]],
                     headers[1]: dict[headers[1]],
                     headers[2]: {
-                        "link": "%s.html?parameter=%s" % (quote(str(prefix)), quote(str(dict[headers[0]]))),
-                        "value": "Show list of objects <i class='bi bi-box-arrow-up-right'></i><p style='visibility:hidden;'>%s</p>"
+                        "link": "%s.html?parameter=%s"
+                        % (quote(str(prefix)), quote(str(dict[headers[0]]))),
+                        "value": "Show list of objects <i class='bi bi-box-arrow-up-right'></i><p style='display: none;'>%s</p>"
                         % dict[headers[2]],
                     },
                 }

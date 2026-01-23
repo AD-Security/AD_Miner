@@ -5,7 +5,6 @@ from ad_miner.sources.modules.graph_class import Graph
 from ad_miner.sources.modules.path_neo4j import Path
 from ad_miner.sources.modules.node_neo4j import Node
 from ad_miner.sources.modules.grid_class import Grid
-from ad_miner.sources.modules import generic_computing
 
 
 import re
@@ -263,60 +262,10 @@ def createGraphPage(
     graph.addUserDA(requests_results["dico_user_da"])
     graph.addGroupDA(requests_results["dico_da_group"])
     graph.addKerberoastableUsers(requests_results["dico_is_kerberoastable"])
+    graph.addDisabledUsers(requests_results["dico_is_disabled"])
 
     page.addComponent(graph)
     page.render()
-
-
-def findAndCreatePathToDaFromUsersList(
-    requests_results, arguments, admin_user, computers
-):
-    users_to_domain_admin = requests_results["users_to_domain_admin"]
-    computers_to_domain_admin = requests_results["computers_to_domain_admin"]
-    if users_to_domain_admin is None:
-        return 0, 0
-    path_to_generate = []
-    # node_to_add = Node(id=42424243, labels="User",
-    #                    name=admin_user, domain="start")
-    list_domain = []
-
-    dico_description_computers_path_to_da = {
-        "description": "All compromission paths from computers to domain administrators.",
-        "risk": "This graph shows all the paths that an attacker could take to become domain admin if they had compromised a computer. These paths show potential privilege escalation paths in the domain. If an attacker compromises a computer, he could use these paths to become domain admin.",
-        "poa": "Review these paths and make sure that they are not exploitable. Cut some of the links between the Active Directory objects by changing configuration in order to reduce the number of possible paths.",
-    }
-
-    for paths in computers_to_domain_admin.values():
-        for path in paths:
-            if path.nodes[0].name in computers:
-                # if path.start_node.name in computers:
-                node_to_add = Node(
-                    id=42424243,
-                    labels="User",
-                    name=admin_user,
-                    domain="start",
-                    tenant_id=None,
-                    relation_type="AdminTo",
-                )
-                # relation = Relation(
-                #     id=88888, nodes=[node_to_add, path.start_node], type="AdminTo"
-                # )
-                new_nodes = path.nodes.copy()
-                new_nodes.insert(0, node_to_add)
-                new_path = Path(new_nodes)
-                path_to_generate.append(new_path)
-                if new_path.nodes[-1].domain not in list_domain:
-                    list_domain.append(path.nodes[-1].domain)
-    if len(path_to_generate):
-        createGraphPage(
-            arguments.cache_prefix,
-            "users_path_to_da_from_%s" % admin_user,
-            "Path to domain admins",
-            dico_description_computers_path_to_da,
-            path_to_generate,
-            requests_results,
-        )
-    return (len(path_to_generate), len(list_domain))
 
 
 def hasPathToDA(
@@ -337,95 +286,6 @@ def hasPathToDA(
         return criticity + 1
 
     return 5
-
-
-def findAndCreatePathToDaFromComputersList(
-    requests_results, arguments, admin_computer, computers
-) -> tuple([int, int]):
-    """
-    Returns the number of path to DA from admin_computer and the number of domains impacted
-    """
-    dico_description_computers_path_to_da = {
-        "description": "All compromission paths from computers to domain administrators.",
-        "risk": "This graph shows all the paths that an attacker could take to become domain admin if they had compromised a computer. These paths show potential privilege escalation paths in the domain. If an attacker compromises a computer, he could use these paths to become domain admin.",
-        "poa": "Review these paths and make sure that they are not exploitable. Cut some of the links between the Active Directory objects by changing configuration in order to reduce the number of possible paths.",
-    }
-
-    computers_to_domain_admin = requests_results["computers_to_domain_admin"]
-    if computers_to_domain_admin is None:
-        logger.print_error(" self.computers_to_domain_admin is None")
-        return 0, 0
-    path_to_generate = []
-
-    domains = []
-
-    for paths in computers_to_domain_admin.values():
-        for path in paths:
-            domains.append(path.nodes[-1].domain)
-
-            if path.nodes[0].name in computers:
-                # relation = Relation(
-                #     id=88888, nodes=[node_to_add, path.nodes[0]], type="Relay"
-                # )
-                node_to_add = Node(
-                    id=42424243,
-                    labels="Computer",
-                    name=admin_computer,
-                    domain="start",
-                    tenant_id=None,
-                    relation_type="Relay",
-                )
-                new_nodes = path.nodes.copy()
-                new_nodes.insert(0, node_to_add)
-                new_path = Path(new_nodes)
-                path_to_generate.append(new_path)
-    if len(path_to_generate):
-        createGraphPage(
-            arguments.cache_prefix,
-            "computers_path_to_da_from_%s" % admin_computer,
-            "Path to domain admins",
-            dico_description_computers_path_to_da,
-            path_to_generate,
-            requests_results,
-        )
-    return len(path_to_generate), len(list(set(domains)))
-
-
-def get_dico_admin_of_computer_id(requests_results):
-    get_users_linked_admin_group = requests_results["get_users_linked_admin_group"]
-    get_groups_linked_admin_group = requests_results["get_groups_linked_admin_group"]
-    get_computers_linked_admin_group = requests_results[
-        "get_computers_linked_admin_group"
-    ]
-    get_users_direct_admin = requests_results["get_users_direct_admin"]
-    users_admin_on_computers = requests_results["users_admin_on_computers"]
-
-    dico_admin_of_computer_id = {}
-
-    for couple in get_users_linked_admin_group:
-        u = couple["u"]
-
-        dico_admin_of_computer_id[u["name"]] = couple["idu"]
-
-    for couple in get_groups_linked_admin_group:
-        g = couple["g"]
-
-        dico_admin_of_computer_id[g["name"]] = couple["idg"]
-
-    for couple in get_computers_linked_admin_group:
-        g = couple["g"]
-
-        dico_admin_of_computer_id[g["name"]] = couple["idg"]
-
-    for couple in get_users_direct_admin:
-        g = couple["g"]
-
-        dico_admin_of_computer_id[g["name"]] = couple["idg"]
-
-    for d in users_admin_on_computers:
-        dico_admin_of_computer_id[d["user"]] = d["user_id"]
-
-    return dico_admin_of_computer_id
 
 
 def manage_plural(elem, text):
@@ -517,16 +377,16 @@ def genNumberOfDCPage(requests_results, arguments):
 
     for d in computers_nb_domain_controllers:
         temp_data = {}
-        temp_data["domain"] = '<i class="bi bi-globe2"></i> ' + d["domain"]
+        temp_data["domain"] = '<i class="bi bi-globe2"></i>' + d["domain"]
         if d["ghost"]:
             temp_data["name"] = (
                 '<svg height="15px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path fill="#ff595e" d="M40.1 467.1l-11.2 9c-3.2 2.5-7.1 3.9-11.1 3.9C8 480 0 472 0 462.2V192C0 86 86 0 192 0S384 86 384 192V462.2c0 9.8-8 17.8-17.8 17.8c-4 0-7.9-1.4-11.1-3.9l-11.2-9c-13.4-10.7-32.8-9-44.1 3.9L269.3 506c-3.3 3.8-8.2 6-13.3 6s-9.9-2.2-13.3-6l-26.6-30.5c-12.7-14.6-35.4-14.6-48.2 0L141.3 506c-3.3 3.8-8.2 6-13.3 6s-9.9-2.2-13.3-6L84.2 471c-11.3-12.9-30.7-14.6-44.1-3.9zM160 192a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm96 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/></svg> '
                 + d["name"]
             )
         else:
-            temp_data["name"] = '<i class="bi bi-server"></i> ' + d["name"]
+            temp_data["name"] = '<i class="bi bi-server"></i>' + d["name"]
         if "WINDOWS" in d["os"].upper():
-            temp_data["os"] = '<i class="bi bi-windows"></i> ' + d["os"]
+            temp_data["os"] = '<i class="bi bi-windows"></i>' + d["os"]
         temp_data["last logon"] = days_format(d["lastLogon"])
         data.append(temp_data)
     grid.setData(data)
@@ -561,18 +421,17 @@ def genUsersListPage(requests_results, arguments):
     data = []
     for user in users:
         tmp_dict = {}
-        tmp_dict["domain"] = '<i class="bi bi-globe2"></i> ' + user["domain"]
+        tmp_dict["domain"] = '<i class="bi bi-globe2"></i>' + user["domain"]
         # Add admin icon
         if user["name"] in admin_list:
             tmp_dict["name"] = (
-                '<i class="bi bi-gem" title="This user is domain admin"></i> '
-                + user["name"]
+                '<i class="bi bi-gem" title="This user is domain admin"></i>' + user["name"]
             )
         else:
-            tmp_dict["name"] = '<i class="bi bi-person-fill"></i> ' + user["name"]
+            tmp_dict["name"] = '<i class="bi bi-person-fill"></i>' + user["name"]
         # Add calendar icon
         logon = -1
-        if user.get("logon"):
+        if "logon" in user:
             logon = user["logon"]
         tmp_dict["last logon"] = days_format(logon)
         data.append(tmp_dict)
@@ -601,12 +460,11 @@ def genAllGroupsPage(requests_results, arguments):
     grid.setheaders(["domain", "name"])
     group_extract = [
         {
-            "domain": '<i class="bi bi-globe2"></i> ' + groups[k]["domain"],
+            "domain": '<i class="bi bi-globe2"></i>' + groups[k]["domain"],
             "name": (
-                '<i class="bi bi-gem" title="This group is domain admin"></i> '
-                + groups[k]["name"]
+                '<i class="bi bi-gem" title="This group is domain admin"></i>' + groups[k]["name"]
                 if groups[k].get("da")
-                else '<i class="bi bi-people-fill"></i> ' + groups[k]["name"]
+                else '<i class="bi bi-people-fill"></i>' + groups[k]["name"]
             ),
         }
         for k in range(len(groups))
@@ -644,20 +502,20 @@ def generateComputersListPage(requests_results, arguments):
                 + computer["name"]
             )
         else:
-            name = '<i class="bi bi-pc-display"></i> ' + computer["name"]
+            name = '<i class="bi bi-pc-display"></i>' + computer["name"]
         # OS
         if computer["os"]:
             os = computer["os"]
             if "windows" in computer["os"].lower():
-                os = '<i class="bi bi-windows"></i> ' + os
+                os = '<i class="bi bi-windows"></i>' + os
             elif "mac" in computer["os"].lower():
-                os = '<i class="bi bi-apple"></i> ' + os
+                os = '<i class="bi bi-apple"></i>' + os
             else:
-                os = '<i class="bi bi-terminal-fill"></i> ' + os
+                os = '<i class="bi bi-terminal-fill"></i>' + os
         else:
             os = "Unknown"
         formated_computer = {
-            "domain": '<i class="bi bi-globe2"></i> ' + computer["domain"],
+            "domain": '<i class="bi bi-globe2"></i>' + computer["domain"],
             "name": name,
             "operating system": os,
         }
@@ -689,17 +547,14 @@ def generateADCSListPage(requests_results, arguments):
     grid = Grid("ADCS servers")
     grid.setheaders(["domain", "name"])
     for adcs in computers_adcs:
-        adcs["domain"] = '<i class="bi bi-globe2"></i> ' + adcs["domain"]
-        adcs["name"] = '<i class="bi bi-server"></i> ' + adcs["name"]
+        adcs["domain"] = '<i class="bi bi-globe2"></i>' + adcs["domain"]
+        adcs["name"] = '<i class="bi bi-server"></i>' + adcs["name"]
     grid.setData(computers_adcs)
     page.addComponent(grid)
     page.render()
 
 
-tenant_id_name = {
-    "F8CDEF31-A31E-4B4A-93E4-5F571E91255A": "Microsoft Entra",
-    None: "Unknown",
-}
+tenant_id_name = {"F8CDEF31-A31E-4B4A-93E4-5F571E91255A": "Microsoft Entra"}
 
 
 def setTenantIDName(requests_results, arguments):
@@ -713,8 +568,8 @@ def setTenantIDName(requests_results, arguments):
 def genAzureTenants(requests_results, arguments):
     azure_tenants = requests_results["azure_tenants"]
     dico_name_description_azure_tenants = {
-        "title": "Azure Tenants",
-        "description": "List of all Azure Tenants",
+        "title": "Entra ID Tenants",
+        "description": "List of all Entra ID Tenants",
         "risk": "",
         "poa": "",
     }
@@ -724,18 +579,17 @@ def genAzureTenants(requests_results, arguments):
     page = Page(
         arguments.cache_prefix,
         "azure_tenants",
-        "List of all Azure Tenants",
+        "List of all Entra ID Tenants",
         dico_name_description_azure_tenants,
     )
-    grid = Grid("Azure Tenants")
+    grid = Grid("Entra ID Tenants")
 
     data = []
     for tenant in azure_tenants:
         data.append(
             {
-                "Tenant ID": '<i class="bi bi-file-earmark-person"></i> '
-                + tenant["ID"],
-                "Tenant Name": '<i class="bi bi-globe2"></i> ' + tenant["Name"],
+                "Tenant ID": '<i class="bi bi-file-earmark-person"></i>' + tenant["ID"],
+                "Tenant Name": '<i class="bi bi-globe2"></i>' + tenant["Name"],
             }
         )
 
@@ -749,8 +603,8 @@ def genAzureTenants(requests_results, arguments):
 def genAzureUsers(requests_results, arguments):
     azure_users = requests_results["azure_user"]
     name_description_azure_users = {
-        "title": "Azure users",
-        "description": "Exhaustive list of all users in the Azure tenant",
+        "title": "Entra ID users",
+        "description": "Exhaustive list of all users in the Entra ID tenant",
         "risk": "",
         "poa": "",
     }
@@ -763,10 +617,10 @@ def genAzureUsers(requests_results, arguments):
     page = Page(
         arguments.cache_prefix,
         "azure_users",
-        "List of all Azure users",
+        "List of all Entra ID users",
         name_description_azure_users,
     )
-    grid = Grid("Azure Users")
+    grid = Grid("Entra ID Users")
 
     data = []
     for user in azure_users:
@@ -774,17 +628,15 @@ def genAzureUsers(requests_results, arguments):
         tenant_name = tenant_id_name.get(tenant_id, tenant_id)
         data.append(
             {
-                "Tenant Name": '<i class="bi bi-globe2"></i> ' + tenant_name,
-                "Name": '<i class="bi bi-person-fill"></i> ' + user["Name"],
+                "Tenant Name": '<i class="bi bi-globe2"></i>' + tenant_name,
+                "Name": '<i class="bi bi-person-fill"></i>' + user["Name"],
                 "Synced on premise": (
                     '<i class="bi bi-check-square"></i>'
                     if user["onpremisesynced"] == True
                     else '<i class="bi bi-square"></i>'
                 ),
                 "On premise SID": (
-                    user["SID"]
-                    if user["onpremisesynced"] == True and user["SID"] != None
-                    else "-"
+                    user["SID"] if user["onpremisesynced"] == True and user["SID"] != None else "-"
                 ),
             }
         )
@@ -799,8 +651,8 @@ def genAzureUsers(requests_results, arguments):
 def genAzureAdmin(requests_results, arguments):
     azure_admin = requests_results["azure_admin"]
     dico_name_description_azure_admin = {
-        "title": "Azure administrators",
-        "description": "List of all Global Admins in the Azure tenant",
+        "title": "Entra ID administrators",
+        "description": "List of all Global Admins in the Entra ID tenant",
         "risk": "",
         "poa": "",
     }
@@ -813,10 +665,10 @@ def genAzureAdmin(requests_results, arguments):
     page = Page(
         arguments.cache_prefix,
         "azure_admin",
-        "List of all Azure Global Admins",
+        "List of all Entra ID Global Admins",
         dico_name_description_azure_admin,
     )
-    grid = Grid("Azure Admin")
+    grid = Grid("Entra ID Admin")
 
     data = []
     for admin in azure_admin:
@@ -824,8 +676,8 @@ def genAzureAdmin(requests_results, arguments):
         tenant_name = tenant_id_name.get(tenant_id, tenant_id)
         data.append(
             {
-                "Tenant Name": '<i class="bi bi-globe2"></i> ' + tenant_name,
-                "Name": '<i class="bi bi-gem"></i> ' + admin["Name"],
+                "Tenant Name": '<i class="bi bi-globe2"></i>' + tenant_name,
+                "Name": '<i class="bi bi-gem"></i>' + admin["Name"],
             }
         )
 
@@ -839,8 +691,8 @@ def genAzureAdmin(requests_results, arguments):
 def genAzureGroups(requests_results, arguments):
     azure_groups = requests_results["azure_groups"]
     dico_name_description_azure_groups = {
-        "title": "Azure groups",
-        "description": "List of all groups in the Azure tenant",
+        "title": "Entra ID groups",
+        "description": "List of all groups in the Entra ID tenant",
         "risk": "",
         "poa": "",
     }
@@ -853,10 +705,10 @@ def genAzureGroups(requests_results, arguments):
     page = Page(
         arguments.cache_prefix,
         "azure_groups",
-        "List of all Azure groups",
+        "List of all Entra ID groups",
         dico_name_description_azure_groups,
     )
-    grid = Grid("Azure Groups")
+    grid = Grid("Entra ID Groups")
 
     data = []
     for group in azure_groups:
@@ -864,8 +716,8 @@ def genAzureGroups(requests_results, arguments):
         tenant_name = tenant_id_name.get(tenant_id, tenant_id)
         data.append(
             {
-                "Tenant Name": '<i class="bi bi-globe2"></i> ' + tenant_name,
-                "Name": '<i class="bi bi-people-fill"></i> ' + group["Name"],
+                "Tenant Name": '<i class="bi bi-globe2"></i>' + tenant_name,
+                "Name": '<i class="bi bi-people-fill"></i>' + group["Name"],
                 "Description": group["Description"],
             }
         )
@@ -879,8 +731,8 @@ def genAzureGroups(requests_results, arguments):
 
 def genAzureVM(requests_results, arguments):
     dico_name_description_azure_vm = {
-        "title": "Azure virtual machines",
-        "description": "List of all virtual machines in the Azure tenant",
+        "title": "Entra ID virtual machines",
+        "description": "List of all virtual machines in the Entra ID tenant",
         "risk": "",
         "poa": "",
     }
@@ -894,10 +746,10 @@ def genAzureVM(requests_results, arguments):
     page = Page(
         arguments.cache_prefix,
         "azure_vm",
-        "List of all Azure VM",
+        "List of all Entra ID VM",
         dico_name_description_azure_vm,
     )
-    grid = Grid("Azure VM")
+    grid = Grid("Entra ID VM")
 
     grid.setheaders(["Tenant Name", "Name", "Operating System"])
 
@@ -913,11 +765,11 @@ def genAzureVM(requests_results, arguments):
         if dict.get("os"):
             os = dict["os"]
             if "windows" in dict["os"].lower():
-                os = '<i class="bi bi-windows"></i> ' + os
+                os = '<i class="bi bi-windows"></i>' + os
             elif "mac" in dict["os"].lower():
-                os = '<i class="bi bi-apple"></i> ' + os
+                os = '<i class="bi bi-apple"></i>' + os
             else:
-                os = '<i class="bi bi-terminal-fill"></i> ' + os
+                os = '<i class="bi bi-terminal-fill"></i>' + os
         else:
             os = "Unknown"
 
@@ -932,8 +784,8 @@ def genAzureVM(requests_results, arguments):
 
 def genAzureDevices(requests_results, arguments):
     dico_name_description_azure_devices = {
-        "title": "Azure Devices",
-        "description": "List of all enrolled devicess in the Azure tenants",
+        "title": "Entra ID Devices",
+        "description": "List of all enrolled devicess in the Entra ID tenants",
         "risk": "",
         "poa": "",
     }
@@ -946,10 +798,10 @@ def genAzureDevices(requests_results, arguments):
     page = Page(
         arguments.cache_prefix,
         "azure_devices",
-        "List of all Azure devices",
+        "List of all Entra ID devices",
         dico_name_description_azure_devices,
     )
-    grid = Grid("Azure Devices")
+    grid = Grid("Entra ID Devices")
 
     grid.setheaders(["Tenant Name", "Name", "Operating System"])
 
@@ -966,17 +818,13 @@ def genAzureDevices(requests_results, arguments):
         if dict.get("os"):
             os = dict["os"]
             if "windows" in dict["os"].lower():
-                os = '<i class="bi bi-windows"></i> ' + os
-            elif (
-                "mac" in dict["os"].lower()
-                or "iphone" in dict["os"].lower()
-                or "ios" in dict["os"].lower()
-            ):
-                os = '<i class="bi bi-apple"></i> ' + os
+                os = '<i class="bi bi-windows"></i>' + os
+            elif "mac" in dict["os"].lower() or "iphone" in dict["os"].lower() or "ios" in dict["os"].lower():
+                os = '<i class="bi bi-apple"></i>' + os
             elif "android" in dict["os"].lower():
-                os = '<i class="bi bi-android"></i> ' + os
+                os = '<i class="bi bi-android"></i>' + os
             else:
-                os = '<i class="bi bi-terminal-fill"></i> ' + os
+                os = '<i class="bi bi-terminal-fill"></i>' + os
         else:
             os = "Unknown"
 
@@ -991,8 +839,8 @@ def genAzureDevices(requests_results, arguments):
 
 def genAzureApps(requests_results, arguments):
     dico_name_description_azure_apps = {
-        "title": "Azure Apps",
-        "description": "List of all applications in the Azure tenants",
+        "title": "Entra ID Apps",
+        "description": "List of all applications in the Entra ID tenants",
         "risk": "",
         "poa": "",
     }
@@ -1006,10 +854,10 @@ def genAzureApps(requests_results, arguments):
     page = Page(
         arguments.cache_prefix,
         "azure_apps",
-        "List of all Azure applications",
+        "List of all Entra ID applications",
         dico_name_description_azure_apps,
     )
-    grid = Grid("Azure Applications")
+    grid = Grid("Entra ID Applications")
 
     grid.setheaders(["Tenant ID", "Name"])
 
@@ -1023,15 +871,15 @@ def genAzureApps(requests_results, arguments):
         if tenant_id == "F8CDEF31-A31E-4B4A-93E4-5F571E91255A":
             data_microsft.append(
                 {
-                    "Tenant ID": '<i class="bi bi-globe2"></i> ' + tenant_name,
-                    "Name": '<i class="bi bi-window-sidebar"></i> ' + app["Name"],
+                    "Tenant ID": '<i class="bi bi-globe2"></i>' + tenant_name,
+                    "Name": '<i class="bi bi-window-sidebar"></i>' + app["Name"],
                 }
             )
         else:
             data.append(
                 {
-                    "Tenant ID": '<i class="bi bi-globe2"></i> ' + tenant_name,
-                    "Name": '<i class="bi bi-window-sidebar"></i> ' + app["Name"],
+                    "Tenant ID": '<i class="bi bi-globe2"></i>' + tenant_name,
+                    "Name": '<i class="bi bi-window-sidebar"></i>' + app["Name"],
                 }
             )
     data += data_microsft

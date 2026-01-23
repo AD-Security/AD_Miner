@@ -52,7 +52,7 @@ class SmolCard:
         """
         Fill the smolcard template with the data in dict_of_value.
         It extracts the {{something}} variables in the html template and replaces them with their value in the dict_of_value dictionnary.
-        Every ` char will be skipped.
+        Every \` char will be skipped.
         """
         original = template_raw
         content = ""

@@ -27,13 +27,15 @@ def getData(arguments, requests_results):
     # Header
     data["render_name"] = arguments.cache_prefix
     data["date"] = f"{extract_date[-2:]}/{extract_date[-4:-2]}/{extract_date[:4]}"
+    data["AD_miner_version"] = arguments.version
+    data["AD_miner_commit"] = arguments.commit
 
     # Stats on the left
     data["nb_domains"] = len(requests_results["domains"])
     data["nb_domain_collected"] = len(requests_results["nb_domain_collected"])
 
     data["domain_or_domains"] = common_analysis.manage_plural(
-        data["nb_domains"], ("Domain", "Domains")
+        data["nb_domains"], ("domain", "domains")
     )
 
     data["nb_dc"] = americanStyle(len(requests_results["nb_domain_controllers"]))
@@ -149,6 +151,7 @@ def complete_data_evolution_time(
             dico_color_category_origin = raw_other_list_data[k]["color_category"]
 
             dico_color_category = {"on_premise": {}, "azure": {}}
+
             for key in dico_color_category_origin:
                 if key in dico_category_invert:
                     category_repartition = category_repartition_dict[
@@ -249,6 +252,8 @@ def populate_dico_data(data, dico_data, arguments, requests_results, dico_rating
     """
     dico_data["datetime"] = data["date"]
     dico_data["render_name"] = arguments.cache_prefix
+    dico_data["AD_miner_version"] = data["AD_miner_version"]
+    dico_data["AD_miner_commit"] = data["AD_miner_commit"]
     dico_data["general_statistic"] = {
         "nb_domains": len(requests_results["domains"]),
         "nb_dc": len(requests_results["nb_domain_controllers"]),
@@ -560,7 +565,7 @@ def render(
                 data[category_repartition][
                     global_risk_controls[risk_control]["panel_key"]
                 ] = ""
-                red_status = f"""<i class='{global_risk_controls[risk_control]["i_class"]}' style='color: rgb({global_risk_controls[risk_control]["colors"]}); margin-right: 3px;'></i> {risk_control.replace("_", " ").capitalize()}"""
+                red_status = f"""<i class='{global_risk_controls[risk_control]["i_class"]}' style='color: rgb({global_risk_controls[risk_control]["colors"]}); margin-right: 3px;'></i>{risk_control.replace("_", " ").capitalize()}"""
                 for issue in data[category_repartition][f"{risk_control}_list"]:
                     custom_title = dico_name_description[issue].replace("$", "")
                     data[category_repartition][

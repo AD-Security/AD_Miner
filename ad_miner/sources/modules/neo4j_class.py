@@ -17,6 +17,7 @@ from ad_miner.sources.modules import cache_class, logger, generic_computing
 from ad_miner.sources.modules.graph_class import Graph
 from ad_miner.sources.modules.node_neo4j import Node
 from ad_miner.sources.modules.path_neo4j import Path
+from ad_miner.sources.modules.macro_graph_class import MacroGraphPage
 from ad_miner.sources.modules.utils import timer_format, grid_data_stringify
 from ad_miner.sources.modules.common_analysis import createGraphPage
 
@@ -57,9 +58,7 @@ def pre_request(arguments):
     try:
         with driver.session() as session:
             with session.begin_transaction() as tx:
-                for record in tx.run(
-                    "MATCH (a) WHERE a.lastlogon IS NOT NULL return toInteger(a.lastlogon) as last order by last desc LIMIT 1"
-                ):
+                for record in tx.run("MATCH (a) WHERE a.lastlogon IS NOT NULL return toInteger(a.lastlogon) as last order by last desc LIMIT 1"):
                     date_lastlogon = record.data()
 
         driver.close()
@@ -74,9 +73,7 @@ def pre_request(arguments):
     try:
         with driver.session() as session:
             with session.begin_transaction() as tx:
-                for record in tx.run(
-                    "CALL dbms.components() YIELD versions RETURN versions[0] AS version"
-                ):
+                for record in tx.run("CALL dbms.components() YIELD versions RETURN versions[0] AS version"):
                     neo4j_version = record.data()
 
         driver.close()
@@ -87,13 +84,9 @@ def pre_request(arguments):
         sys.exit(-1)
 
     try:
-        extract_date = datetime.datetime.fromtimestamp(date_lastlogon["last"]).strftime(
-            "%Y%m%d"
-        )
+        extract_date = datetime.datetime.fromtimestamp(date_lastlogon["last"]).strftime("%Y%m%d")
     except UnboundLocalError as e:
-        logger.print_warning(
-            "No LastLogon, the date of the report will be today's date"
-        )
+        logger.print_warning("No LastLogon, the date of the report will be today's date")
         extract_date_timestamp = datetime.date.today()
         extract_date = extract_date_timestamp.strftime("%Y%m%d")
 
@@ -101,22 +94,33 @@ def pre_request(arguments):
         with session.begin_transaction() as tx:
             total_objects = []
             boolean_azure = False
-            for record in tx.run(
-                "MATCH (x) return labels(x), count(labels(x)) AS number_type"
-            ):
+            for record in tx.run("MATCH (x) return labels(x), count(labels(x)) AS number_type"):
                 total_objects.append(record.data())
 
             for record in tx.run("MATCH ()-[r]->() RETURN count(r) AS total_relations"):
                 number_relations = record.data()["total_relations"]
 
-            for record in tx.run(
-                "MATCH (n) WHERE n.tenantid IS NOT NULL return n LIMIT 1"
-            ):
+            for record in tx.run("MATCH (n) WHERE EXISTS(n.tenantid) return n LIMIT 1"):
                 boolean_azure = bool(record.data()["n"])
 
     driver.close()
 
     return neo4j_version, extract_date, total_objects, number_relations, boolean_azure
+
+
+class Nodes_cache:
+    def __init__(self):
+        # Dict with AD Miner nodes objects (node + relation type)
+        # Key should be the concatened string ID_relation_type
+        # This allows to optimize RAM use and avoid creating redondant objects
+        self.ad_miner_nodes = {}
+
+    def get_node(self, id, labels, name, domain, tenant_id, relation_type) -> Node:
+        key = str(id) + "_" + relation_type
+        if key not in self.ad_miner_nodes:
+            node = Node(id, labels, name, domain, tenant_id, relation_type)
+            self.ad_miner_nodes[key] = node
+        return self.ad_miner_nodes[key]
 
 
 class Neo4j:
@@ -136,9 +140,7 @@ class Neo4j:
                     self.cluster[ip + ":" + port] = int(nCore)
                     arguments.nb_chunks += 20 * int(nCore)
                 except ValueError as e:
-                    logger.print_error(
-                        "An error occured while parsing the cluster argument. The correct syntax is --cluster ip1:port1:nCores1,ip2:port2:nCores2,etc"
-                    )
+                    logger.print_error("An error occured while parsing the cluster argument. The correct syntax is --cluster ip1:port1:nCores1,ip2:port2:nCores2,etc")
                     logger.print_error(e)
                     sys.exit(-1)
             if len(self.cluster) == 1:
@@ -161,10 +163,8 @@ class Neo4j:
         recursive_level = arguments.level
         self.password_renewal = int(arguments.renewal_password)
 
-        properties = "MemberOf|HasSession|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|CanPSRemote|AddSelf|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|CanExtractDCSecrets|CanLoadCode|CanLogOnLocallyOnDC|UnconstrainedDelegations|WriteAccountRestrictions|DumpSMSAPassword|Synced|AZRunsAs|SyncedToADUser|SyncedToEntraUser|GoldenCert|WriteGPLink|ADCSESC1|ADCSESC2|ADCSESC3|ADCSESC4|ADCSESC5|ADCSESC6a|ADCSESC6b|ADCSESC7|ADCSESC8|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC11|ADCSESC12|ADCSESC13|ADCSESC15|DCSync"
-        path_to_group_operators_props = properties.replace(
-            "|CanExtractDCSecrets|CanLoadCode|CanLogOnLocallyOnDC", ""
-        )
+        properties = "MemberOf|HasSession|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|CanPSRemote|AddSelf|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|CanExtractDCSecrets|CanLoadCode|CanLogOnLocallyOnDC|UnconstrainedDelegations|WriteAccountRestrictions|DumpSMSAPassword|Synced|AZRunsAs|SyncedToADUser|SyncedToEntraUser|GoldenCert|WriteGPLink|ADCSESC1|ADCSESC2|ADCSESC3|ADCSESC4|ADCSESC5|ADCSESC6a|ADCSESC6b|ADCSESC7|ADCSESC8|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC11|ADCSESC12|ADCSESC13|ADCSESC15|DCSync|CoerceToTGT|WriteOwnerRaw|OwnsRaw|SameForestTrust|CoerceAndRelayNTLMToLDAPS|SpoofSIDHistory|CoerceAndRelayNTLMToLDAP|CoerceAndRelayNTLMToSMB|CoerceAndRelayNTLMToADCS|CanApplyGPO|ContainsIdentity|GPOAppliesTo|HasTrustKeys|MemberOfLocalGroup|PropagatesACEsTo|ClaimSpecialIdentity|ProtectAdminGroups"
+        path_to_group_operators_props = properties.replace("|CanExtractDCSecrets|CanLoadCode|CanLogOnLocallyOnDC", "")
 
         if boolean_azure:
             properties += "|AZAKSContributor|AZAddMembers|AZAddOwner|AZAddSecret|AZAutomationContributor|AZAvereContributor|AZCloudAppAdmin|AZContains|AZContributor|AZExecuteCommand|AZGetCertificates|AZGetKeys|AZGetSecrets|AZGlobalAdmin|AZHasRole|AZKeyVaultContributor|AZLogicAppContributor|AZMGAddMember|AZMGAddOwner|AZMGAddSecret|AZMGAppRoleAssignment_ReadWrite_All|AZMGApplication_ReadWrite_All|AZMGDirectory_ReadWrite_All|AZMGGrantAppRoles|AZMGGrantRole|AZMGGroupMember_ReadWrite_All|AZMGGroup_ReadWrite_All|AZMGRoleManagement_ReadWrite_Directory|AZMGServicePrincipalEndpoint_ReadWrite_All|AZManagedIdentity|AZMemberOf|AZNodeResourceGroup|AZOwner|AZOwns|AZPrivilegedAuthAdmin|AZPrivilegedRoleAdmin|AZResetPassword|AZRunAs|AZScopedTo|AZUserAccessAdministrator|AZVMAdminLogin|AZVMContributor|AZWebsiteContributor"
@@ -174,22 +174,16 @@ class Neo4j:
 
         self.properties = properties
 
-        inbound_control_edges = "MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns|HasSIDHistory"
+        inbound_control_edges = "MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns|HasSIDHistory|WriteOwnerRaw|OwnsRaw"
 
         try:
-            self.all_requests = json.loads(
-                (MODULES_DIRECTORY / "requests.json").read_text(encoding="utf-8")
-            )
+            self.all_requests = json.loads((MODULES_DIRECTORY / "requests.json").read_text(encoding="utf-8"))
 
             del self.all_requests["template"]
 
             for request_key in self.all_requests.keys():
                 # Replace methods with python methods
-                self.all_requests[request_key]["output_type"] = {
-                    "Graph": Graph,
-                    "list": list,
-                    "dict": dict,
-                }.get(
+                self.all_requests[request_key]["output_type"] = {"Graph": Graph, "list": list, "dict": dict, "mixed": "mixed", "fastGDS": "fastGDS"}.get(
                     self.all_requests[request_key]["output_type"],
                 )
                 # Replace variables with their values in requests
@@ -215,30 +209,16 @@ class Neo4j:
                     for field in fields_to_replace:
                         if field in self.all_requests[request_key]:
 
-                            self.all_requests[request_key][field] = self.all_requests[
-                                request_key
-                            ][field].replace(
-                                variable, str(variables_to_replace[variable])
-                            )
+                            self.all_requests[request_key][field] = self.all_requests[request_key][field].replace(variable, str(variables_to_replace[variable]))
 
                 # Replace postprocessing with python method
                 if "postProcessing" in self.all_requests[request_key]:
-                    self.all_requests[request_key]["postProcessing"] = {
-                        "Neo4j.setDangerousInboundOnGPOs": self.setDangerousInboundOnGPOs,
-                        "Neo4j.check_gds_plugin": self.check_gds_plugin,
-                        "Neo4j.check_unkown_relations": self.check_unkown_relations,
-                        "Neo4j.check_all_domain_objects_exist": self.check_all_domain_objects_exist,
-                        "Neo4j.check_relation_type": self.check_relation_type,
-                    }.get(self.all_requests[request_key]["postProcessing"])
+                    self.all_requests[request_key]["postProcessing"] = {"Neo4j.setDangerousInboundOnGPOs": self.setDangerousInboundOnGPOs, "Neo4j.check_gds_plugin": self.check_gds_plugin, "Neo4j.check_unkown_relations": self.check_unkown_relations, "Neo4j.check_all_domain_objects_exist": self.check_all_domain_objects_exist, "Neo4j.check_relation_type": self.check_relation_type, "Neo4j.create_nodes_cache": self.create_nodes_cache}.get(self.all_requests[request_key]["postProcessing"])
         except json.JSONDecodeError as error:
-            logger.print_error(
-                f"Error while parsing neo4j requests from requests.json : \n{error}"
-            )
+            logger.print_error(f"Error while parsing neo4j requests from requests.json : \n{error}")
             sys.exit(-1)
         except FileNotFoundError:
-            logger.print_error(
-                f"Neo4j request file not found : {MODULES_DIRECTORY / 'requests.json'} no such file."
-            )
+            logger.print_error(f"Neo4j request file not found : {MODULES_DIRECTORY / 'requests.json'} no such file.")
             sys.exit(-1)
         if arguments.gpo_low:
             del self.all_requests["unpriv_users_to_GPO_init"]
@@ -250,20 +230,12 @@ class Neo4j:
         else:  # Deep version of GPO requests
             del self.all_requests["unpriv_users_to_GPO"]
         try:
-            self.edges_rating = json.loads(
-                (MODULES_DIRECTORY / "exploitability_ratings.json").read_text(
-                    encoding="utf-8"
-                )
-            )
+            self.edges_rating = json.loads((MODULES_DIRECTORY / "exploitability_ratings.json").read_text(encoding="utf-8"))
         except json.JSONDecodeError as error:
-            logger.print_error(
-                f"Error while parsing exploitability ratings from exploitability_ratings.json : \n{error}"
-            )
+            logger.print_error(f"Error while parsing exploitability ratings from exploitability_ratings.json : \n{error}")
             sys.exit(-1)
         except FileNotFoundError:
-            logger.print_error(
-                f"Exploitability ratings file not found : {MODULES_DIRECTORY / 'exploitability_ratings.json'} no such file."
-            )
+            logger.print_error(f"Exploitability ratings file not found : {MODULES_DIRECTORY / 'exploitability_ratings.json'} no such file.")
             sys.exit(-1)
 
         try:
@@ -283,13 +255,14 @@ class Neo4j:
             logger.print_error(e)
             sys.exit(-1)
 
+        global nodes_cache
+        nodes_cache = Nodes_cache()
+
     def close(self):
         self.driver.close()
 
     @staticmethod
-    def executeParallelRequest(
-        value, identifier, query, arguments, output_type, server, gds_cost_type_table
-    ):
+    def executeParallelRequest(value, identifier, query, arguments, output_type, server, gds_cost_type_table):
         """This function is used in multiprocessing pools
         to execute multiple query parts in parallel"""
         q = query.replace("PARAM1", str(value)).replace("PARAM2", str(identifier))
@@ -304,25 +277,35 @@ class Neo4j:
             with session.begin_transaction() as tx:
                 if output_type is Graph:
                     for record in tx.run(q):
-                        result.append(record["p"])
-                        # Quick way to handle multiple records
-                        # (e.g., RETURN p, p2)
-                        if "p2" in record:
-                            result.append(record["p2"])
+                        for column in record.keys():
+                            result.append(record[column])
                     try:
                         result = Neo4j.computePathObject(result, gds_cost_type_table)
                     except Exception as e:
-                        logger.print_error(
-                            "An error while computing path object of this query:\n" + q
-                        )
+                        logger.print_error("An error while computing path object of this query:\n" + q)
                         logger.print_error(e)
 
                 else:
                     result = tx.run(q)
                     if output_type is list:
                         result = result.values()
-                    else:  # then it should be dict ?
+                    elif output_type is dict:
                         result = result.data()
+                    elif output_type == "mixed":
+                        # This is ugly because you can't iterate multiple times on a Neo4j Result object
+                        final_result = []
+                        for record in result:
+                            temp_data = {}
+                            keys = record.keys()
+                            for key in keys:
+                                if all(char == "p" for char in key):  # Then it's a path :)
+                                    temp_data[key] = Neo4j.computePathObject([record[key]], gds_cost_type_table)[0]
+                                else:
+                                    temp_data[key] = record[key]
+                            final_result.append(temp_data)
+                        result = final_result
+                    else:
+                        logger.print_error(f"Request ignored, unknown output type: {output_type}.")
 
         return result
 
@@ -333,10 +316,7 @@ class Neo4j:
             if result is None:
                 result = []
             if result is not False:  # Sometimes result = []
-                logger.print_debug(
-                    "From cache : %s - %d objects"
-                    % (self.all_requests[request_key]["name"], len(result))
-                )
+                logger.print_debug("From cache : %s - %d objects" % (self.all_requests[request_key]["name"], len(result)))
                 self.all_requests[request_key]["result"] = result
                 if "postProcessing" in self.all_requests[request_key]:
                     self.all_requests[request_key]["postProcessing"](self, result)
@@ -379,6 +359,10 @@ class Neo4j:
             space = np.linspace(0, scopeSize, part_number + 1, dtype=int)
             output_type = self.all_requests[request_key]["output_type"]
 
+            # Fallback to classic mode if fastGDS and GDS not installed
+            if not self.gds and output_type == "fastGDS":
+                output_type = Graph
+
             # Divide the request with SKIP & LIMIT
             for i in range(len(space) - 1):
                 items.append(
@@ -405,14 +389,9 @@ class Neo4j:
         if result is None:
             result = []
 
-        if (
-            "is_a_gds_request" in request
-            and self.gds
-            and "reverse_path" in request
-            and request["reverse_path"]
-        ):
+        if "is_a_gds_request" in request and self.gds and "reverse_path" in request and request["reverse_path"]:
             for path in result:
-                path.reverse()
+                path.reverse(nodes_cache)
 
         if "postProcessing" in request:
             request["postProcessing"](self, result)
@@ -425,9 +404,7 @@ class Neo4j:
                     tx.run(q)
 
         self.cache.createCacheEntry(request_key, result)
-        logger.print_warning(
-            timer_format(time.time() - start) + " - %d objects" % len(result)
-        )
+        logger.print_warning(timer_format(time.time() - start) + " - %d objects" % len(result))
         request["result"] = result
         return result
 
@@ -440,18 +417,47 @@ class Neo4j:
             with session.begin_transaction() as tx:
                 if output_type is Graph:
                     for record in tx.run(request["request"]):
-                        result.append(record["p"])
-                        # Quick way to handle multiple records
-                        # (e.g., RETURN p, p2)
-                        if "p2" in record:
-                            result.append(record["p2"])
-                    result = self.computePathObject(result, self.gds_cost_type_table)
+                        for column in record.keys():
+                            result.append(record[column])
+                    try:
+                        result = Neo4j.computePathObject(result, self.gds_cost_type_table)
+                    except Exception as e:
+                        logger.print_error("An error while computing path object of this query:\n" + request["request"])
+                        logger.print_error(e)
                 else:
                     result = tx.run(request["request"])
                     if output_type is list:
                         result = result.values()
-                    else:
+                    elif output_type is dict:
                         result = result.data()
+                    elif output_type == "fastGDS":
+                        temp_dicts = result.data()
+                        logger.print_debug("Successfully retrieved data in python using fastGDS mode")
+                        result = []
+                        for d in tqdm.tqdm(temp_dicts):
+                            nodes_ID = d["nodeIds"]
+                            costs = d["costs"]
+                            costs.pop(0)  # For whatever reason first value is always 0
+                            # Small adjustment: GDS returns the cumulative cost for each node
+                            for i in range(1, len(costs)):
+                                costs[-i] = costs[-i] - costs[-(i + 1)]
+
+                            result.append(Neo4j.constructPathFromFastGDS(self, nodes_ID, costs, self.gds_cost_type_table))
+                    elif output_type == "mixed":
+                        # This is ugly because you can't iterate multiple times on a Neo4j Result object
+                        final_result = []
+                        for record in result:
+                            temp_data = {}
+                            keys = record.keys()
+                            for key in keys:
+                                if all(char == "p" for char in key):  # Then it's a path :)
+                                    temp_data[key] = Neo4j.computePathObject([record[key]], self.gds_cost_type_table)[0]
+                                else:
+                                    temp_data[key] = record[key]
+                            final_result.append(temp_data)
+                        result = final_result
+                    else:
+                        logger.print_error(f"Request ignored, unknown output type: {output_type}.")
         return result
 
     @staticmethod
@@ -461,18 +467,7 @@ class Neo4j:
         starting_time = time.time()
         cluster_state = {server: False for server in self.cluster.keys()}
         query = self.all_requests[request_key]["request"]
-        items = [  # Create all requests to do
-            (
-                -1,
-                -1,
-                query,
-                self.arguments,
-                self.all_requests[request_key]["output_type"],
-                server,
-                self.gds_cost_type_table,
-            )
-            for server in self.cluster.keys()
-        ]
+        items = [(-1, -1, query, self.arguments, self.all_requests[request_key]["output_type"], server, self.gds_cost_type_table) for server in self.cluster.keys()]  # Create all requests to do
 
         with mp.Pool(len(self.cluster)) as pool:
             result = []
@@ -484,13 +479,7 @@ class Neo4j:
                 for server in tasks.keys():
                     if tasks[server].ready() and not cluster_state[server]:
                         cluster_state[server] = True
-                        logger.print_success(
-                            "Write query executed by "
-                            + server
-                            + " in "
-                            + str(round(time.time() - starting_time, 2))
-                            + "s."
-                        )
+                        logger.print_success("Write query executed by " + server + " in " + str(round(time.time() - starting_time, 2)) + "s.")
             temp_results = [task.get() for task in tasks.values()]
             result = temp_results[0]
             # Same request executed on every node, we only need the result once
@@ -513,9 +502,7 @@ class Neo4j:
 
         temp_results = []
 
-        def process_completed_task(
-            number_of_retrieved_objects, task, active_jobs, jobs_done, pbar
-        ):
+        def process_completed_task(number_of_retrieved_objects, task, active_jobs, jobs_done, pbar):
             temporary_result = task.get()
             # Update displayed number of retrieved objects
             if output_type == list:
@@ -546,12 +533,7 @@ class Neo4j:
                     )
                     + "% "
                 )
-            pbar.set_description(
-                cluster_participation
-                + "| "
-                + str(number_of_retrieved_objects)
-                + " objects"
-            )
+            pbar.set_description(cluster_participation + "| " + str(number_of_retrieved_objects) + " objects")
             pbar.refresh()
             pbar.update(1)
             return number_of_retrieved_objects
@@ -584,26 +566,11 @@ class Neo4j:
 
                     if len(active_jobs[server]) < max_jobs:
                         item = requestList.pop()
-                        (
-                            value,
-                            identifier,
-                            query,
-                            arguments,
-                            output_type,
-                            self.gds_cost_type_table,
-                        ) = item
+                        (value, identifier, query, arguments, output_type, self.gds_cost_type_table, executeParallelRequest) = item
 
                         task = pool.apply_async(
                             self.executeParallelRequest,
-                            (
-                                value,
-                                identifier,
-                                query,
-                                arguments,
-                                output_type,
-                                server,
-                                self.gds_cost_type_table,
-                            ),
+                            (value, identifier, query, arguments, output_type, server, self.gds_cost_type_table, executeParallelRequest),
                         )
                         temp_results.append(task)
                         active_jobs[server].append(task)
@@ -632,18 +599,7 @@ class Neo4j:
     def parallelRequestLegacy(self, items):
         """parallelRequestLegacy is the default way of slicing requests
         in smaller requests to parallelize it"""
-        items = [  # Add bolt to items
-            (
-                value,
-                identifier,
-                query,
-                arguments,
-                output_type,
-                self.arguments.bolt,
-                gds_cost_type_table,
-            )
-            for value, identifier, query, arguments, output_type, gds_cost_type_table in items
-        ]
+        items = [(value, identifier, query, arguments, output_type, self.arguments.bolt, gds_cost_type_table) for value, identifier, query, arguments, output_type, gds_cost_type_table in items]  # Add bolt to items
 
         with mp.Pool(mp.cpu_count()) as pool:
             result = []
@@ -741,9 +697,7 @@ class Neo4j:
 
         stopping_time = time.time()
 
-        logger.print_warning(
-            "Integrity check took " + str(round(stopping_time - startig_time, 2)) + "s"
-        )
+        logger.print_warning("Integrity check took " + str(round(stopping_time - startig_time, 2)) + "s")
 
     @staticmethod
     def parallelWriteRequestCluster(self, items):
@@ -756,13 +710,7 @@ class Neo4j:
 
         output_type = items[0][4]
 
-        small_requests_to_do = {
-            server: [
-                (value, identifier, query, arguments, output_type, server)
-                for value, identifier, query, arguments, output_type in items
-            ]
-            for server in self.cluster.keys()
-        }
+        small_requests_to_do = {server: [(value, identifier, query, arguments, output_type, server) for value, identifier, query, arguments, output_type in items] for server in self.cluster.keys()}
         cluster_state = {server: False for server in self.cluster.keys()}
 
         pbar = tqdm.tqdm(
@@ -789,23 +737,10 @@ class Neo4j:
                         if task.ready():
                             active_jobs[server].remove(task)
                             pbar.update(1)
-                    if (
-                        len(small_requests_to_do[server]) == 0
-                        and len(active_jobs[server]) == 0
-                        and not cluster_state[server]
-                    ):
+                    if len(small_requests_to_do[server]) == 0 and len(active_jobs[server]) == 0 and not cluster_state[server]:
                         cluster_state[server] = True
-                        logger.print_success(
-                            "Write request executed by "
-                            + server
-                            + " in "
-                            + str(round(time.time() - starting_time, 2))
-                            + "s."
-                        )
-                    if (
-                        len(active_jobs[server]) < max_jobs
-                        and len(small_requests_to_do[server]) > 0
-                    ):
+                        logger.print_success("Write request executed by " + server + " in " + str(round(time.time() - starting_time, 2)) + "s.")
+                    if len(active_jobs[server]) < max_jobs and len(small_requests_to_do[server]) > 0:
                         item = small_requests_to_do[server].pop()
                         (
                             value,
@@ -818,15 +753,7 @@ class Neo4j:
 
                         task = pool.apply_async(
                             self.executeParallelRequest,
-                            (
-                                value,
-                                identifier,
-                                query,
-                                arguments,
-                                output_type,
-                                server,
-                                self.gds_cost_type_table,
-                            ),
+                            (value, identifier, query, arguments, output_type, server, self.gds_cost_type_table),
                         )
                         if server == next(iter(self.cluster)):
                             temp_results.append(task)
@@ -842,19 +769,9 @@ class Neo4j:
                         if task.ready():
                             active_jobs[server].remove(task)
                             pbar.update(1)
-                    if (
-                        len(small_requests_to_do[server]) == 0
-                        and len(active_jobs[server]) == 0
-                        and not cluster_state[server]
-                    ):
+                    if len(small_requests_to_do[server]) == 0 and len(active_jobs[server]) == 0 and not cluster_state[server]:
                         cluster_state[server] = True
-                        logger.print_success(
-                            "Write request executed to "
-                            + server
-                            + " in "
-                            + str(round(time.time() - starting_time, 2))
-                            + "s."
-                        )
+                        logger.print_success("Write request executed to " + server + " in " + str(round(time.time() - starting_time, 2)) + "s.")
             for r in temp_results:
                 result += r.get()
         pbar.close()
@@ -870,38 +787,35 @@ class Neo4j:
                 nodes = []
                 for relation in path.relationships:
                     rtype = relation.type
+
                     if "PATH_" in rtype:
                         gds_identifier = round(float(relation.get("cost")), 3)
                         gds_identifier = round(1000 * (gds_identifier % 1))
 
                         rtype = gds_cost_type_table[gds_identifier]
-
                     for node in relation.nodes:
-                        label = [i for i in node.labels if "Base" not in i][
+                        label = [
+                            i for i in node.labels if "Base" not in i and "Tag_Tier_Zero" not in i
+                        ][
                             0
                         ]  # e.g. : {"User","Base"} -> "User" or {"User","AZBase"} -> "User"
-                        nodes.append(
-                            Node(
-                                node.id,
-                                label,
-                                node["name"],
-                                node["domain"],
-                                node["tenantid"],
-                                rtype,
-                            )
-                        )
+                        node = nodes_cache.get_node(node.id, label, node["name"], node["domain"], node["tenantid"], rtype)
+                        nodes.append(node)
                         break
 
-                nodes.append(
-                    Node(
-                        path.end_node.id,
-                        [i for i in path.end_node.labels if "Base" not in i][0],
-                        path.end_node["name"],
-                        path.end_node["domain"],
-                        path.end_node["tenantid"],
-                        "",
-                    )
+                node = nodes_cache.get_node(
+                    path.end_node.id,
+                    [
+                        i
+                        for i in path.end_node.labels
+                        if "Base" not in i and "Tag_Tier_Zero" not in i
+                    ][0],
+                    path.end_node["name"],
+                    path.end_node["domain"],
+                    path.end_node["tenantid"],
+                    "",
                 )
+                nodes.append(node)
 
                 final_paths.append(Path(nodes))
 
@@ -955,10 +869,7 @@ class Neo4j:
                     for i in range(len(relation_list)):
                         r = relation_list[i]
                         if r not in self.edges_rating.keys():
-                            logger.print_warning(
-                                r
-                                + " relation type is unknown and will use default exploitability rating."
-                            )
+                            logger.print_warning(r + " relation type is unknown and will use default exploitability rating.")
                         q = "MATCH ()-[r:"
                         q += str(r)
                         q += "]->() SET r.cost=r.cost + "
@@ -972,9 +883,7 @@ class Neo4j:
         It adds it to the requests_results dictionnary
         It is mainly populated with legacy code from domains.py, computers.py, etc
         """
-        computers_with_last_connection_date = requests_results[
-            "computers_not_connected_since"
-        ]
+        computers_with_last_connection_date = requests_results["computers_not_connected_since"]
         groups = requests_results["nb_groups"]
         computers_nb_domain_controllers = requests_results["nb_domain_controllers"]
         users_dormant_accounts = requests_results["dormant_accounts"]
@@ -986,11 +895,7 @@ class Neo4j:
                 computers_with_last_connection_date,
             )
         )
-        users_not_connected_for_3_months = (
-            [user["name"] for user in users_dormant_accounts if user["days"] > 90]
-            if users_dormant_accounts is not None
-            else None
-        )
+        users_not_connected_for_3_months = [user["name"] for user in users_dormant_accounts if user["days"] > 90] if users_dormant_accounts is not None else None
 
         dico_ghost_computer = {}
         if computers_not_connected_since_60 != []:
@@ -1112,6 +1017,8 @@ class Neo4j:
         requests_results["dico_gpo_to_da"] = dico_gpo_to_da
 
         logger.print_debug("[Done]")
+        logger.print_debug("Computing common cache")
+        # Some of the following is duplicated / unoptimized / dirty
 
         try:
             if "users_admin_on_servers_1" not in requests_results:
@@ -1145,11 +1052,22 @@ class Neo4j:
             requests_results["users_admin_on_servers_list"] = users_admin_on_servers_list
             requests_results["servers_with_most_paths"] = servers_with_most_paths
             requests_results["users_admin_on_servers"] = users_admin_on_servers
-            requests_results["users_admin_on_servers_all_data"] = (
-                users_admin_on_servers_all_data
-            )
+            requests_results["users_admin_on_servers_all_data"] = users_admin_on_servers_all_data
         except KeyError as ke:
             logger.print_error(f"KeyError while generating users admin on servers data: {ke}")
+
+        # Dico for ACL anomaly (and potential others) to known how many admin privs a user have
+        tmp_admin_computer_names = {}
+
+        for d in requests_results["users_admin_on_computers"]:
+            if d["user"] not in tmp_admin_computer_names:
+                tmp_admin_computer_names[d["user"]] = {}
+            tmp_admin_computer_names[d["user"]][d["computer"]] = 0
+
+        users_admin_on_computers_count = {}
+        for user in tmp_admin_computer_names:
+            users_admin_on_computers_count[user] = len(tmp_admin_computer_names[user].keys())
+        requests_results["users_admin_on_computers_count"] = users_admin_on_computers_count
 
         # Dico for ACL anomaly and futur other controls to retrieve paths to DA on computer ID
         dico_paths_computers_to_DA = {}
@@ -1164,9 +1082,7 @@ class Neo4j:
         dico_is_user_admin_on_computer = {}
         for d in users_admin_on_computers:
             dico_is_user_admin_on_computer[d["user"]] = True
-        requests_results["dico_is_user_admin_on_computer"] = (
-            dico_is_user_admin_on_computer
-        )
+        requests_results["dico_is_user_admin_on_computer"] = dico_is_user_admin_on_computer
 
         # Dico for kerberoastable users to add them to graphs
         dico_is_kerberoastable = {}
@@ -1175,13 +1091,40 @@ class Neo4j:
 
         requests_results["dico_is_kerberoastable"] = dico_is_kerberoastable
 
-        list_computers_admin_computers = requests_results[
-            "computers_admin_on_computers"
-        ]
-        computers_admin_to_count = generic_computing.getCountValueFromKey(
-            list_computers_admin_computers, "source_computer"
-        )
+        # Dico for disabled users
+        dico_is_disabled = {}
+        for d in requests_results["nb_disabled_accounts"]:
+            dico_is_disabled[d["name"]] = True
+
+        requests_results["dico_is_disabled"] = dico_is_disabled
+
+        list_computers_admin_computers = requests_results["computers_admin_on_computers"]
+        computers_admin_to_count = generic_computing.getCountValueFromKey(list_computers_admin_computers, "source_computer")
         requests_results["computers_admin_to_count"] = computers_admin_to_count
+
+        logger.print_debug("[Done]")
+        logger.print_debug("Generating objects to DA generic pages")
+
+        macrographpages_objects_to_DA = MacroGraphPage()
+
+        macrographpages_objects_to_DA.addPathsInBulk(
+            "object_to_domain_admin", objects_to_domain_admin
+        )
+
+        dico_description_to_DA = {
+            "description": "Paths leading to domain admin",
+            "risk": "Compromission paths to domain admin represent the exposed attack surface that the AD environment presents to the attacker in order to gain privileges in the domain(s). If an attacker exploits one of these paths, they will be able to gain privileges in the domain(s) and cause some serious damage.",
+            "poa": "Review the paths, make sure they are not exploitable. If they are, cut the link between the Active Directory objects in order to reduce the attack surface.",
+        }
+
+        macrographpages_objects_to_DA.render_pages(
+            self.arguments,
+            requests_results,
+            dico_description_to_DA,
+            "Path to Domain Admin privileges",
+        )
+
+        logger.print_debug("[Done]")
 
     @staticmethod
     def check_all_domain_objects_exist(self, result):
@@ -1211,7 +1154,6 @@ class Neo4j:
             "ManageCA",
             "ManageCertificates",
             "RootCAFor",
-            "TrustedBy",
             "GetChanges",
             "GetChangesInFilteredSet",
             "GetChangesAll",
@@ -1224,6 +1166,9 @@ class Neo4j:
             "RemoteInteractiveLogonPrivilege",
             "EnrollOnBehalfOf",
             "ManageCA",
+            "RemoteInteractiveLogonRight",
+            "CrossForestTrust",
+            "LocalToComputer",
         ]
 
         if not self.arguments.rdp:
@@ -1242,7 +1187,44 @@ class Neo4j:
         unused_relations = unused_relations[:-2]
 
         if len(unused_relations) > 0:
-            logger.print_error(
-                "The following relations are not used (yet) for general AD Miner path finding:"
-            )
+            logger.print_error("The following relations are not used (yet) for general AD Miner path finding:")
             logger.print_error(unused_relations)
+
+    @staticmethod
+    def create_nodes_cache(self, result):
+        self.nodes_dict = {}
+        for d in result:
+            self.nodes_dict[d["id"]] = {"labels": d["labels"], "name": d["name"], "domain": d["domain"], "tenant_id": d["tenant_id"]}
+
+    @staticmethod
+    def constructPathFromFastGDS(self, nodes_list, costs_list, gds_cost_type_table):
+
+        nodes = []
+        for i in range(len(nodes_list) - 1):
+            gds_identifier = round(float(costs_list[i]), 3)
+            gds_identifier = round(1000 * (gds_identifier % 1))
+            rtype = gds_cost_type_table[gds_identifier]
+
+            node_id = nodes_list[i]
+            labels = self.nodes_dict[node_id]["labels"]
+            label = [i for i in labels if "Base" not in i and "Tag_Tier_Zero" not in i][0]
+            name = self.nodes_dict[node_id]["name"]
+            domain = self.nodes_dict[node_id]["domain"]
+            tenant_id = self.nodes_dict[node_id]["tenant_id"]
+
+            node = nodes_cache.get_node(node_id, label, name, domain, tenant_id, rtype)
+
+            nodes.append(node)
+
+        last_node_id = nodes_list[-1]
+        labels = self.nodes_dict[last_node_id]["labels"]
+        label = [i for i in labels if "Base" not in i and "Tag_Tier_Zero" not in i][0]
+        name = self.nodes_dict[last_node_id]["name"]
+        domain = self.nodes_dict[last_node_id]["domain"]
+        tenant_id = self.nodes_dict[last_node_id]["tenant_id"]
+
+        node = nodes_cache.get_node(last_node_id, label, name, domain, tenant_id, "")
+
+        nodes.append(node)
+
+        return Path(nodes)

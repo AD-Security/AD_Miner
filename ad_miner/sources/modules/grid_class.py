@@ -1,5 +1,9 @@
 # row format : {key1 : {"value": value, "link":link}, key2 : value2}
 from ad_miner.sources.modules.utils import HTML_DIRECTORY
+from ad_miner.sources.modules import logger
+
+import json
+import os
 
 
 class Grid:
@@ -66,3 +70,46 @@ class Grid:
             new_contents = template_contents.replace("// DATA PLACEHOLDER", textToInsert)
 
             page_f.write(new_contents)
+
+    def writeEvolutionJSON(self, render_prefix, grid_key, data):
+        evolution_folder = os.path.join(".", "evolution_data")
+        os.makedirs(evolution_folder, exist_ok=True)
+
+        evolution_json_path = os.path.join(
+            evolution_folder, render_prefix + "_grid_" + grid_key
+        )
+
+        with open(evolution_json_path, "w") as f:
+            f.write(json.dumps(data, indent=4))
+
+    def AddNewIconsToNewLines(self, previous_render_prefix, grid_key, column):
+        # Skip if no previous render prefix was created
+        if previous_render_prefix == "":
+            return
+        try:
+            evolution_json_path = os.path.join(
+                ".", "evolution_data", previous_render_prefix + "_grid_" + grid_key
+            )
+            with open(evolution_json_path) as f:
+                previous_data = json.load(f)
+
+            # Creating a dic with existing entries in the previous dic to improve performance
+            existing_lines = {}
+            for dict in previous_data:
+                existing_lines[dict[column]] = True
+
+            # Editing current data to add a "new" mark to new lines
+            for d in self.data:
+                v = d[column]
+                if v not in existing_lines:
+                    d[column] = (
+                        '<i class="bi bi-patch-exclamation" style="color: darkred;"></i>'
+                        + v
+                        + " (new)"
+                    )
+
+        except Exception as e:
+            logger.print_error(
+                f'"New" icon will not be displayed as an error occurend when trying to open the json file {evolution_json_path}'
+            )
+            logger.print_error(e)

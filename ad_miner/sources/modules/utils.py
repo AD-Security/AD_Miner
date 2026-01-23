@@ -119,6 +119,12 @@ def args():
         default="",
         help="Nodes of the cluster to run parallel neo4j queries. ex : host1:port1:nCore1,host2:port2:nCore2,...",
     )
+    parser.add_argument(
+        "--previous_prefix",
+        type=str,
+        default="",
+        help="Last AD Miner cache prefix (used to highlight new objects)",
+    )
     return parser.parse_args()
 
 
@@ -144,9 +150,9 @@ def days_format(nb_days: int, critical_time=90) -> str:
 
     sortClass = str(nb_days).zfill(6)
     if nb_days is None:
-        return f"<i class='{sortClass} bi bi-x-circle' style='color: rgb(255, 89, 94);'></i> Unknown"
+        return f"<i class='{sortClass} bi bi-x-circle' style='color: rgb(255, 89, 94);'></i>Unknown"
     if nb_days > 19000:
-        return f"<i class='{sortClass} bi bi-x-circle' style='color: rgb(255, 89, 94);'></i> Never"
+        return f"<i class='{sortClass} bi bi-x-circle' style='color: rgb(255, 89, 94);'></i>Never"
     y = nb_days // 365
     m = (nb_days % 365) // 30
     d = (nb_days % 365) % 30
@@ -154,11 +160,11 @@ def days_format(nb_days: int, critical_time=90) -> str:
     color = "#b00404" if nb_days > 2 * critical_time else "#e36402" if nb_days > critical_time else "#0a6e01"
 
     if y > 0:
-        return f"<i class='{sortClass} bi bi-calendar3' style='color: {color};'></i> {y} year{'s' if y > 1 else ''}, {m} month{'s' if m > 1 else ''} and {d} day{'s' if d > 1 else ''}"
+        return f"<i class='{sortClass} bi bi-calendar3' style='color: {color};'></i>{y} year{'s' if y > 1 else ''}, {m} month{'s' if m > 1 else ''} and {d} day{'s' if d > 1 else ''}"
     elif m > 0:
-        return f"<i class='{sortClass} bi bi-calendar3' style='color: {color};'></i> {m} month{'s' if m > 1 else ''} and {d} day{'s' if d > 1 else ''}"
+        return f"<i class='{sortClass} bi bi-calendar3' style='color: {color};'></i>{m} month{'s' if m > 1 else ''} and {d} day{'s' if d > 1 else ''}"
     else:
-        return f"<i class='{sortClass} bi bi-calendar3' style='color: {color};'></i> {d} day{'s' if d > 1 else ''}"
+        return f"<i class='{sortClass} bi bi-calendar3' style='color: {color};'></i>{d} day{'s' if d > 1 else ''}"
 
 
 def grid_data_stringify(raw_data: dict) -> str:
