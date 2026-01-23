@@ -82,7 +82,7 @@ To run AD Miner, you first need a neo4j database which contains the Active Direc
 
 The easier way is to do the following command using `pipx`:
 ```shell
-pipx install 'git+https://github.com/Mazars-Tech/AD_Miner.git'
+pipx install 'git+https://github.com/AD-Security/AD_Miner.git'
 ```
 
 ADMiner is also available on some Linux distributions:
@@ -174,13 +174,15 @@ In the graph pages, you can right-click on the graph nodes to cluster them or to
 
 If you have multiple AD-Miner reports over time, you can easily track the evolution with the `--evolution` argument: each AD-Miner report generates a JSON data file alongside the `index.html` file. You just need to gather these different JSON files into a single folder and specify the path to that folder after the `--evolution` argument.
 
-A tab called 'Evolution over time'  then appears on the main page.
+    AD-miner -c -cf My_Report -b bolt://server:7687 -u neo4j -p mypassword -r 180 --evolution evolution_folder/
+
+An 'Evolution over time' tab appears on the main page, providing evolution graphs for each category (Permissions, Passwords, Kerberos, and Misc).
 
 <p align="center">
     <img src="doc/img/evolution2.png" style="height:400px">
 </p>
 
-Also, views by categories 'permissions,' 'passwords,' 'kerberos' also allow you to track changes over time.
+Detailed evolution for each control is also available and can be accessed via the “Show evolution” button for each category. A logarithmic scale is available to better highlight subtle variations over time.
 
 <p align="center">
     <img src="doc/img/evol.gif" style="height:200px">

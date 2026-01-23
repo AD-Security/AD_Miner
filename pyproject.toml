@@ -12,6 +12,7 @@ dev-dependencies = { }
   numpy = "==2.1.1"
   pytz = "==2022.7.1"
   tqdm = "==4.66.4"
+  requests = "^2.32.5"
 
   [tool.poetry.scripts]
   AD-miner = "ad_miner.__main__:main"
