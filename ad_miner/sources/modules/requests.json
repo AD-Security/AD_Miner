@@ -30,19 +30,13 @@
     },
     "preparation_request_nodes": {
         "name": "Clean AD Miner custom attributes",
-        "request": "MATCH (n) REMOVE n.is_server,n.is_dc,n.is_da,n.is_dag,n.can_dcsync,n.path_candidate,n.ou_candidate,n.contains_da_dc,n.is_da_dc,n.ghost_computer,n.has_path_to_da,n.is_admin,n.is_group_operator,n.members_count,n.has_members,n.user_members_count,n.is_operator_member,n.is_group_account_operator,n.is_group_backup_operator,n.is_group_server_operator,n.is_group_print_operator,n.is_account_operator,n.is_backup_operator,n.is_server_operator,n.is_print_operator,n.gpolinks_count,n.has_links,n.dangerous_inbound, n.is_adminsdholder,n.is_dnsadmin,n.da_types,n.vulnerable_ou,n.can_abuse_adcs,n.dac,n.dac_types,n.is_adcs,n.target_kud,n.is_gag,n.is_msol,n.is_rbcd_target,n.is_dcg",
+        "request": "MATCH (n) REMOVE n.is_server,n.is_dc,n.is_da,n.is_dag,n.can_dcsync,n.path_candidate,n.ou_candidate,n.contains_da_dc,n.is_da_dc,n.ghost_computer,n.has_path_to_da,n.is_admin,n.is_group_operator,n.members_count,n.has_members,n.user_members_count,n.is_operator_member,n.is_group_account_operator,n.is_group_backup_operator,n.is_group_server_operator,n.is_group_print_operator,n.is_account_operator,n.is_backup_operator,n.is_server_operator,n.is_print_operator,n.gpolinks_count,n.has_links,n.dangerous_inbound, n.is_adminsdholder,n.is_dnsadmin,n.da_types,n.vulnerable_ou,n.can_abuse_adcs,n.dac,n.dac_types,n.is_adcs,n.target_kud,n.is_gag,n.is_msol,n.is_rbcd_target,n.is_dcg,n.esc7",
         "output_type": "list",
         "is_a_write_request": "true"
     },
     "delete_unresolved": {
         "name": "Delete objects for which SID could not resolved",
         "request": "MATCH (n) WHERE ((n.domain IS NULL AND NOT (n:Domain)) OR n.name IS NULL) AND n.tenantid IS NULL DETACH DELETE n",
-        "output_type": "list",
-        "is_a_write_request": "true"
-    },
-    "delete_ADLocalGroup": {
-        "name": "Delete ADLocalGroup objects",
-        "request": "MATCH (d:ADLocalGroup) DETACH DELETE d",
         "output_type": "list",
         "is_a_write_request": "true"
     },
@@ -134,12 +128,6 @@
     "set_can_extract_dc_secrets": {
         "name": "ADD CanExtractDCSecrets relation from BACKUP OPERATORS OR SERVER OPERATORS groups to DCs of same domain",
         "request": "MATCH (g:Group) WHERE g.objectid ENDS WITH \"-551\" OR g.objectid ENDS WITH \"-549\" MATCH (c:Computer{is_dc:true}) WHERE g.domain = c.domain MERGE (g)-[:CanExtractDCSecrets]->(c) ",
-        "output_type": "list",
-        "is_a_write_request": "true"
-    },
-    "set_unconstrained_delegations": {
-        "name": "ADD UnconstrainedDelegations relation from objects with KUD to the corresponding domain",
-        "request": "MATCH (m{unconstraineddelegation:true,is_dc:false}) MATCH (d:Domain) WHERE m.domain = d.domain MERGE (m)-[:UnconstrainedDelegations]->(d) ",
         "output_type": "list",
         "is_a_write_request": "true"
     },
@@ -254,12 +242,6 @@
         "output_type": "list",
         "is_a_write_request": "true"
     },
-    "del_fake_dc_admins": {
-        "name": "Delete AdminTo edges from non-DA to DC",
-        "request": "MATCH (g{is_da:false})-[rr:AdminTo]->(c:Computer{is_dc:true}) DETACH DELETE rr ",
-        "output_type": "list",
-        "is_a_write_request": "true"
-    },
     "set_is_group_operator": {
         "name": "Set is_group_operator to Operator Groups (cf: ACCOUNT OPERATORS, SERVER OPERATORS, BACKUP OPERATORS, PRINT OPERATORS)",
         "request": "MATCH (g:Group) WHERE g.objectid ENDS WITH \"-551\" OR g.objectid ENDS WITH \"-549\" OR g.objectid ENDS WITH \"-548\" OR g.objectid ENDS WITH \"-550\" SET g.is_group_operator=True SET g.is_group_account_operator = CASE WHEN g.objectid ENDS WITH \"-548\" THEN true END, g.is_group_backup_operator = CASE WHEN g.objectid ENDS WITH \"-551\" THEN true END, g.is_group_server_operator = CASE WHEN g.objectid ENDS WITH \"-549\" THEN true END, g.is_group_print_operator = CASE WHEN g.objectid ENDS WITH \"-550\" THEN true END ",
@@ -276,14 +258,14 @@
     },
     "set_dcsync1": {
         "name": "Set dcsync=TRUE to nodes that can DCSync (GetChanges/GetChangesAll)",
-        "request": "MATCH (n1) WITH n1 ORDER BY n1.name SKIP PARAM1 LIMIT PARAM2 MATCH p=allShortestPaths((n1)-[:MemberOf|GetChanges*1..5]->(u:Domain)) WHERE n1 <> u WITH n1 MATCH p2=(n1)-[:MemberOf|GetChangesAll*1..5]->(u:Domain) WHERE n1 <> u AND NOT n1.name IS NULL AND (((n1.is_da IS NULL OR n1.is_da=FALSE) AND (n1.is_dc IS NULL OR n1.is_dc=FALSE)) OR (NOT u.domain CONTAINS '.' + n1.domain AND n1.domain <> u.domain)) SET n1.can_dcsync=TRUE RETURN DISTINCT p2 as p",
+        "request": "MATCH (n1) WITH n1 ORDER BY ID(n1) SKIP PARAM1 LIMIT PARAM2 MATCH p=allShortestPaths((n1)-[:MemberOf|GetChanges*1..5]->(u:Domain)) WHERE n1 <> u WITH n1 MATCH p2=(n1)-[:MemberOf|GetChangesAll*1..5]->(u:Domain) WHERE n1 <> u AND NOT n1.name IS NULL AND (((n1.is_da IS NULL OR n1.is_da=FALSE) AND (n1.is_dc IS NULL OR n1.is_dc=FALSE)) OR (NOT u.domain CONTAINS '.' + n1.domain AND n1.domain <> u.domain)) SET n1.can_dcsync=TRUE RETURN DISTINCT p2 as p",
         "output_type": "Graph",
         "scope_query": "MATCH (n1) return count(n1)",
         "is_a_write_request": "true"
     },
     "set_dcsync2": {
         "name": "Set dcsync=TRUE to nodes that can DCSync (GenericAll/AllExtendedRights)",
-        "request": "MATCH (n2) WITH n2 ORDER BY n2.name SKIP PARAM1 LIMIT PARAM2 MATCH p3=allShortestPaths((n2)-[:MemberOf|GenericAll|AllExtendedRights*1..5]->(u:Domain)) WHERE n2 <> u AND NOT n2.name IS NULL AND (((n2.is_da IS NULL OR n2.is_da=FALSE) AND (n2.is_dc IS NULL OR n2.is_dc=FALSE)) OR (NOT u.domain CONTAINS '.' + n2.domain AND n2.domain <> u.domain)) SET n2.can_dcsync=TRUE RETURN DISTINCT p3 as p",
+        "request": "MATCH (n2) WITH n2 ORDER BY ID(n2) SKIP PARAM1 LIMIT PARAM2 MATCH p3=allShortestPaths((n2)-[:MemberOf|GenericAll|AllExtendedRights*1..5]->(u:Domain)) WHERE n2 <> u AND NOT n2.name IS NULL AND (((n2.is_da IS NULL OR n2.is_da=FALSE) AND (n2.is_dc IS NULL OR n2.is_dc=FALSE)) OR (NOT u.domain CONTAINS '.' + n2.domain AND n2.domain <> u.domain)) SET n2.can_dcsync=TRUE RETURN DISTINCT p3 as p",
         "output_type": "Graph",
         "scope_query": "MATCH (n1) return count(n1)",
         "is_a_write_request": "true"
@@ -295,7 +277,7 @@
     },
     "set_ou_candidate": {
         "name": "Set ou_candidate=TRUE to candidates eligible to shortestou to DA",
-        "request": "MATCH (m) WHERE NOT m.name IS NULL AND ((m:Computer AND (m.is_dc=false OR m.is_dc IS NULL)) OR (m:User AND (m.is_da=false OR m.is_da IS NULL))) SET m.ou_candidate=TRUE",
+        "request": "MATCH (m) WHERE NOT m.name IS NULL AND ((m:Computer AND m.enabled AND (m.is_dc=false OR m.is_dc IS NULL)) OR (m:User AND m.enabled AND (m.is_da=false OR m.is_da IS NULL))) SET m.ou_candidate=TRUE",
         "output_type": "list",
         "is_a_write_request": "true"
     },
@@ -321,6 +303,12 @@
         "name": "Set is_da_dc=FALSE to objects without is_da_dc = TRUE",
         "request": "MATCH (o:Base) WHERE o.is_da_dc IS NULL SET o.is_da_dc = FALSE",
         "output_type": "list",
+        "is_a_write_request": "true"
+    },
+    "set_is_adcs": {
+        "name": "Set is_adcs to ADCS servers",
+        "request": "MATCH (g:Group) WHERE g.objectid ENDS WITH '-517' MATCH (c:Computer)-[r:MemberOf*1..4]->(g) SET c.is_adcs=TRUE RETURN c.domain AS domain, c.name AS name",
+        "output_type": "dict",
         "is_a_write_request": "true"
     },
     "set_path_candidate": {
@@ -363,12 +351,6 @@
         "output_type": "list",
         "is_a_write_request": "true"
     },
-    "set_is_adcs": {
-        "name": "Set is_adcs to ADCS servers",
-        "request": "MATCH (g:Group) WHERE g.objectid ENDS WITH '-517' MATCH (c:Computer)-[r:MemberOf*1..4]->(g) SET c.is_adcs=TRUE RETURN c.domain AS domain, c.name AS name", 
-        "output_type": "dict",
-        "is_a_write_request": "true"
-    },
     "set_groups_direct_admin": {
         "name": "Set groups which are direct admins of computers",
         "request": "MATCH (g:Group)-[r:AdminTo]->(c:Computer) SET g.is_admin=true RETURN DISTINCT g",
@@ -400,6 +382,18 @@
         "output_type": "list",
         "is_a_write_request": "true"
     },
+    "set_user_indirect_admin":{
+        "name": "Set is_admin=True to users members of groups with is_admin=True",
+        "request": "MATCH (u:User)-[:MemberOf]->(:Group{is_admin:true}) SET u.is_admin=true",
+        "output_type": "list",
+        "is_a_write_request": "true"
+    },
+    "set_users_direct_admin":{
+        "name": "Set is_admin=True to users with ",
+        "request": "MATCH (u:User)-[:AdminTo]->() SET u.is_admin=true",
+        "output_type": "list",
+        "is_a_write_request": "true"
+    },
     "set_target_kud": {
         "name":"Set target_kud attribute on nodes that are configured for KUD",
         "request": "MATCH (o{unconstraineddelegation:true}) WHERE ((o:User AND o.enabled=true) OR (o:Computer AND o.is_dc=false)) SET o.target_kud=TRUE",
@@ -421,52 +415,32 @@
     "azure_set_apps_name": {
         "name": "Set Azure applications names",
         "request": "MATCH (a:AZApp) WHERE a.name IS NULL AND a.displayname IS NOT NULL SET a.name = a.displayname",
-        "output_type": "List",
+        "output_type": "list",
         "is_a_write_request": "true"
     },
     "nb_domain_collected": {
         "name": "Count number of domains collected",
-        "request": "MATCH (m:Domain)-[r]->() RETURN distinct(COALESCE(m.domain, m.name))",
+        "request": "MATCH (m:Domain{collected:true}) RETURN m.name",
         "output_type": "list"
-    },
-    "get_count_of_member_admin_group": {
-        "name": "Count number of users in group",
-        "request": "MATCH (u:User{enabled:true})-[r:MemberOf]->(gg:Group{is_admin:true}) WHERE NOT u.name IS NULL and NOT gg.name IS NULL WITH count(u) as count, gg as g MATCH (g) SET g.user_members_count=count",
-        "output_type": "list",
-        "is_a_write_request": "true"
-    },
-    "get_users_linked_admin_group": {
-        "name": "Returns all users member of an admin group",
-        "request": "MATCH (u:User{enabled:true})-[r:MemberOf]->(gg:Group{is_admin:true}) WHERE NOT u.name IS NULL and NOT gg.name IS NULL SET u.is_admin=true RETURN u, gg, ID(u) as idu, ID(gg) as idg",
-        "output_type": "dict",
-        "is_a_write_request": "true"
-    },
-    "get_groups_linked_admin_group": {
-        "name": "Returns all groups member of an admin group",
-        "request": "MATCH (g:Group)-[r:MemberOf]->(gg:Group{is_admin:true}) WHERE NOT g.name IS NULL and NOT gg.name IS NULL RETURN g, gg, ID(g) as idg, ID(gg) as idgg",
-        "output_type": "dict"
-    },
-    "get_computers_linked_admin_group": {
-        "name": "Returns all computers administrated by an admin group",
-        "request": "MATCH (g:Group{is_admin:true})-[r:AdminTo]->(c:Computer) WHERE NOT c.name IS NULL and NOT g.name IS NULL RETURN g, c, ID(g) as idg, ID(c) as idc",
-        "output_type": "dict"
-    },
-    "get_users_direct_admin": {
-        "name": "Return direct admin users",
-        "request": "MATCH (g:User{enabled:true})-[r:AdminTo]->(c:Computer) WHERE NOT g.name IS NULL and NOT c.name IS NULL SET g.is_admin=True RETURN g, c, ID(g) as idg, ID(c) as idc",
-        "output_type": "dict",
-        "is_a_write_request": "true"
     },
     "set_ghost_computer": {
         "name": "Set ghost_computer=TRUE to computers that did not login for more than 90 days",
-        "request": "MATCH (n:Computer) WHERE toInteger(($extract_date$ - n.lastlogontimestamp)/86400)>$password_renewal$ SET   n.ghost_computer=TRUE",
+        "request": "MATCH (n:Computer{enabled:true}) WHERE toInteger(($extract_date$ - n.lastlogontimestamp)/86400)>$password_renewal$ SET   n.ghost_computer=TRUE",
         "output_type": "list",
         "is_a_write_request": "true"
     },
     "set_default_exploitability_rating" : {
         "name": "Set default exploitability rating (r.cost=100) to all relations",
-        "request": "MATCH ()-[r]->() SET r.cost=100",
+        "request": "MATCH ()-[r]->() WITH r SKIP PARAM1 LIMIT PARAM2 MATCH ()-[r]->() SET r.cost=100",
+	"scope_query": "MATCH ()-[r]->() RETURN count(r)",
         "output_type": "list"
+    },
+    "get_all_nodes" : {
+        "name": "Retrieving all nodes for fastGDS mode",
+        "request": "MATCH (o) WITH o ORDER BY ID(o) SKIP PARAM1 LIMIT PARAM2 MATCH (o) RETURN ID(o) AS id, LABELS(o) AS labels, o.name AS name, o.domain AS domain, o.tenant_id AS tenant_id",
+        "scope_query": "MATCH (o) return count(o)",
+        "output_type": "dict",
+        "postProcessing": "Neo4j.create_nodes_cache"
     },
     "check_unknown_relations" : {
         "name": "Checking for unknown relations",
@@ -491,18 +465,18 @@
     },
     "users_shadow_credentials": {
         "name": "Non privileged users that can impersonate privileged users",
-        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 MATCH p=allShortestPaths((u)-[r:MemberOf|AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl*1..3]->(m:User{is_da:true,enabled:true})) RETURN p ",
+        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY ID(u) SKIP PARAM1 LIMIT PARAM2 MATCH p=(u)-[:MemberOf*0..3]->()-[r:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:User{is_da:true,enabled:true}) RETURN p ",
         "scope_query": "MATCH (u:User{is_da:false, enabled:true}) return count(u)",
         "output_type": "Graph"
     },
     "users_shadow_credentials_to_non_admins": {
         "name": "Non privileged users that can be impersonated by non privileged users",
         "is_a_gds_request": "true",
-        "request": "CALL {MATCH (s:User{enabled:true, is_da:false}) RETURN s UNION ALL MATCH (s:Group{is_dag:false,is_da:false}) RETURN s} WITH s ORDER BY s.name SKIP PARAM1 LIMIT PARAM2 MATCH p=shortestPath((s)-[r:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl*1..3]->(t:User{enabled:true})) WHERE s <> t AND s.is_group_account_operator IS NULL RETURN p",
+        "request": "MATCH (s) WHERE (s:User AND s.enabled AND NOT s.is_da) OR (s:Group AND NOT s.is_dag AND NOT s.is_da) WITH s ORDER BY ID(s) SKIP PARAM1 LIMIT PARAM2 MATCH p=shortestPath((s)-[r:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl*1..3]->(t:User{enabled:true})) WHERE s <> t AND s.is_group_account_operator IS NULL RETURN p",
         "create_gds_graph": "CALL gds.graph.project.cypher('graph_users_shadow_credentials_to_non_admins', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "gds_request": "MATCH (target:User{enabled:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_users_shadow_credentials_to_non_admins', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE starting_node <> target AND starting_node.is_group_account_operator IS NULL AND starting_node.is_account_operator IS NULL AND ((starting_node:User AND starting_node.enabled AND NOT starting_node.is_da) OR (starting_node:Group AND NOT starting_node.is_dag AND NOT starting_node.is_da)) RETURN path as p",
         "drop_gds_graph": "CALL gds.graph.drop('graph_users_shadow_credentials_to_non_admins', false) YIELD graphName",
-        "scope_query": "CALL {MATCH (s:User{enabled:true, is_da:false}) RETURN s UNION ALL MATCH (s:Group{is_dag:false,is_da:false}) RETURN s} WITH s ORDER BY s.name RETURN count(s)",
+        "scope_query": "MATCH (s) WHERE (s:User AND s.enabled AND NOT s.is_da) OR (s:Group AND NOT s.is_dag AND NOT s.is_da) WITH s ORDER BY ID(s) RETURN count(s)",
         "output_type": "Graph",
         "reverse_path": true
     },
@@ -523,12 +497,12 @@
     },
     "nb_computers": {
         "name": "Number of computers",
-        "request": "MATCH (c:Computer) WHERE NOT c.name IS NULL RETURN DISTINCT(c.domain) AS domain, c.name AS name, c.operatingsystem AS os, c.ghost_computer AS ghost ORDER BY c.domain",
+        "request": "MATCH (c:Computer) WHERE NOT c.name IS NULL RETURN DISTINCT(c.domain) AS domain, c.name AS name, c.operatingsystem AS os, c.ghost_computer AS ghost, c.enabled as enabled ORDER BY c.domain",
         "output_type": "dict"
     },
     "computers_not_connected_since": {
         "name": "Computers not connected since",
-        "request": "MATCH (c:Computer) WHERE NOT c.lastlogontimestamp IS NULL AND c.name IS NOT NULL RETURN c.name AS name, toInteger(($extract_date$ - c.lastlogontimestamp)/86400) as days, toInteger(($extract_date$ - c.pwdlastset)/86400) as pwdlastset, c.enabled as enabled ORDER BY days DESC ",
+        "request": "MATCH (c:Computer) WHERE NOT c.lastlogontimestamp IS NULL AND c.name IS NOT NULL AND c.enabled RETURN c.name AS name, toInteger(($extract_date$ - c.lastlogontimestamp)/86400) as days, toInteger(($extract_date$ - c.pwdlastset)/86400) as pwdlastset, c.enabled as enabled ORDER BY days DESC ",
         "output_type": "dict"
     },
     "nb_domain_admins": {
@@ -573,7 +547,7 @@
     },
     "dormant_accounts": {
         "name": "Dormant accounts",
-        "request": "MATCH (n:User{enabled:true}) WHERE toInteger(($extract_date$ - n.lastlogontimestamp)/86400)>$password_renewal$ RETURN n.domain as domain, n.name as name,toInteger(($extract_date$ - n.lastlogontimestamp)/86400) AS days, toInteger(($extract_date$ - n.whencreated)/86400) AS accountCreationDate ORDER BY days DESC",
+        "request": "MATCH (n:User{enabled:true}) WHERE toInteger(($extract_date$ - n.lastlogontimestamp)/86400)>$password_renewal$ RETURN n.domain as domain, n.name as name, n.displayname as displayname, toInteger(($extract_date$ - n.lastlogontimestamp)/86400) AS days, toInteger(($extract_date$ - n.whencreated)/86400) AS accountCreationDate, n.distinguishedname as distinguishedname ORDER BY days DESC",
         "output_type": "dict"
     },
     "password_last_change": {
@@ -613,26 +587,27 @@
         "create_gds_graph": "CALL gds.graph.project.cypher('graph_objects_to_domain_admin', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$properties$]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_objects_to_domain_admin', false) YIELD graphName",
         "request": "MATCH (m{path_candidate:true}) WHERE NOT m.name IS NULL WITH m ORDER BY ID(m) SKIP PARAM1 LIMIT PARAM2 MATCH p = shortestPath((m)-[r:$properties$*1..$recursive_level$]->(g:Group{is_dag:true})) WHERE m<>g SET m.has_path_to_da=true RETURN DISTINCT(p) as p",
-        "gds_request" : "MATCH (target:Group {is_dag: true}) CALL gds.allShortestPaths.dijkstra.stream('graph_objects_to_domain_admin', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE starting_node.path_candidate = TRUE SET starting_node.has_path_to_da=true RETURN path as p",
-        "output_type": "Graph",
+        "gds_request" : "MATCH (target:Group {is_dag: true}) CALL gds.allShortestPaths.dijkstra.stream('graph_objects_to_domain_admin', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path, costs WITH nodes(path)[-1] AS starting_node, path, costs WHERE starting_node.path_candidate = TRUE SET starting_node.has_path_to_da=true RETURN [n in nodes(path) | ID(n)] AS nodeIds, costs",
+        "output_type": "fastGDS",
         "scope_query": "MATCH (m{path_candidate:true}) WHERE NOT m.name IS NULL RETURN count(m)",
         "reverse_path": true,
         "is_a_write_request": "true"
     },
     "objects_to_adcs": {
         "name": "Objects with path to ADCS servers",
-        "request": "MATCH (o{path_candidate:true}) WHERE NOT o.name IS NULL WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=(o)-[rrr:MemberOf*0..4]->()-[rr:AdminTo]->(c{is_adcs:true}) RETURN DISTINCT(p) as p",
+        "request": "MATCH (o{path_candidate:true}) WHERE NOT o:Group AND NOT o.name IS NULL WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=(o)-[rrr:MemberOf*0..4]->()-[rr:AdminTo]->(c{is_adcs:true}) RETURN DISTINCT(p) as p",
         "output_type": "Graph",
         "scope_query": "MATCH (m{path_candidate:true}) WHERE NOT m.name IS NULL RETURN count(m)"
     },
     "users_admin_on_computers": {
         "name": "Users admin on machines",
-        "request": "MATCH p=(n:User{enabled:true})-[r:MemberOf|AdminTo*1..4]->(m:Computer) WHERE n:User AND n.enabled=true RETURN distinct(n.name) AS user,m.name AS computer,m.has_path_to_da AS has_path_to_da, ID(n) as user_id",
-        "output_type": "dict"
+        "request": "MATCH (u:User{enabled:true}) WITH u ORDER BY ID(u) SKIP PARAM1 LIMIT PARAM2 MATCH p=(u)-[:MemberOf*0..3]->()-[r:AdminTo]->(c:Computer) RETURN u.name AS user, u.displayname as displayname, c.name AS computer, c.has_path_to_da AS has_path_to_da, ID(u) as user_id, u.distinguishedname AS distinguishedname, p",
+        "output_type": "mixed",
+        "scope_query": "MATCH (u:User{enabled:true}) RETURN count(u)"
     },
     "users_admin_on_servers_1": {
         "name": "Users admin on servers n\u00b01",
-        "request": "MATCH (n:User{enabled:true,is_da:false}) WHERE NOT n.name IS NULL WITH n ORDER BY ID(n) SKIP PARAM1 LIMIT PARAM2 MATCH p=(n)-[r:MemberOf*1..4]->(g:Group)-[r1:$properties$]->(u:Computer) WITH LENGTH(p) as pathLength, p, n, u WHERE NONE (x in NODES(p)[1..(pathLength-1)] WHERE x.objectid = u.objectid) AND NOT n.objectid = u.objectid RETURN n.name AS user, u.name AS computer, u.has_path_to_da as has_path_to_da",
+        "request": "MATCH (n:User{enabled:true,is_da:false}) WHERE NOT n.name IS NULL WITH n ORDER BY ID(n) SKIP PARAM1 LIMIT PARAM2 MATCH p=(n)-[r:MemberOf*1..2]->(g:Group)-[r1:$properties$]->(u:Computer) WITH LENGTH(p) as pathLength, p, n, u WHERE NONE (x in NODES(p)[1..(pathLength-1)] WHERE x.objectid = u.objectid) AND NOT n.objectid = u.objectid RETURN n.name AS user, u.name AS computer, u.has_path_to_da as has_path_to_da",
         "scope_query": "MATCH (n:User{enabled:true,is_da:false}) WHERE NOT n.name IS NULL RETURN count(n)",
         "output_type": "dict"
     },
@@ -644,23 +619,23 @@
     },
     "computers_admin_on_computers": {
         "name": "Number of computers admin of computers",
-        "request": "CALL{MATCH (c1:Computer)-[r1:AdminTo]->(c2:Computer) WHERE c1.name IS NOT NULL AND c2.name IS NOT NULL AND c1 <> c2 RETURN c1.name AS source_computer, c2.name AS target_computer, c2.has_path_to_da AS has_path_to_da UNION ALL MATCH (c1:Computer)-[r2:MemberOf*1..4]->(g:Group)-[r3:AdminTo]->(c2:Computer) WHERE c1.name IS NOT NULL AND c2.name IS NOT NULL AND c1 <> c2 RETURN c1.name AS source_computer, c2.name AS target_computer, c2.has_path_to_da AS has_path_to_da}  RETURN distinct(source_computer), target_computer, has_path_to_da",
+        "request": "MATCH (c1:Computer)-[:MemberOf*0..]->()-[:AdminTo]->(c2:Computer) WHERE c1 <> c2 RETURN DISTINCT c1.name AS source_computer, c2.name AS target_computer, c2.has_path_to_da AS has_path_to_da, c2.smbsigning AS smbsigning",
         "output_type": "dict"
     },
     "domain_map_trust": {
         "name": "Domain map trust",
-        "request": "MATCH p=shortestpath((d:Domain)-[:TrustedBy]->(m:Domain)) WHERE d<>m RETURN DISTINCT(p)",
+        "request": "MATCH p=shortestpath((d:Domain)-[:TrustedBy|AbuseTGTDelegation|SameForestTrust|SpoofSIDHistory|CrossForestTrust]->(m:Domain)) WHERE d<>m RETURN DISTINCT(p)",
         "output_type": "Graph"
     },
     "kud": {
         "name": "Shortest paths to objects configured for KUD",
         "is_a_gds_request": "true",
-        "create_gds_graph": "CALL gds.graph.project.cypher('graph_kud', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$properties$]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
+        "create_gds_graph": "CALL gds.graph.project.cypher('graph_kud', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$properties$]->(m) WHERE NOT (m:Domain OR n:Domain) AND NOT (n.is_dag=true or m.is_dag=true) AND NOT (n.is_da=true or m.is_da=true) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_kud', false) YIELD graphName",
         "request": "MATCH (n) WHERE (n:Computer OR (n:User AND n.enabled=true))  AND (n.is_da IS NULL OR n.is_da=FALSE) AND (n.is_dc IS NULL OR n.is_dc=FALSE) WITH n ORDER BY n.name SKIP PARAM1 LIMIT PARAM2 MATCH p=shortestPath((n)-[:$properties$*1..$recursive_level$]->(m{target_kud:true})) WHERE NOT n=m AND (((n.is_da IS NULL OR n.is_da=FALSE) AND (n.is_dc IS NULL OR n.is_dc=FALSE)) OR (NOT m.domain CONTAINS '.' + n.domain AND n.domain <> m.domain)) RETURN DISTINCT(p)",
-        "gds_request": "MATCH (target{target_kud:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_kud', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE ((starting_node:Computer OR (starting_node:User AND starting_node.enabled=true))  AND (starting_node.is_da IS NULL OR starting_node.is_da=FALSE) AND (starting_node.is_dc IS NULL OR starting_node.is_dc=FALSE)) AND (target <> starting_node AND (((starting_node.is_da IS NULL OR starting_node.is_da=FALSE) AND (starting_node.is_dc IS NULL OR starting_node.is_dc=FALSE)) OR (NOT target.domain CONTAINS '.' + starting_node.domain AND starting_node.domain <> target.domain))) RETURN path as p",
+        "gds_request": "MATCH (target{target_kud:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_kud', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path, costs WITH nodes(path)[-1] AS starting_node, path, costs WHERE ((starting_node:Computer OR (starting_node:User AND starting_node.enabled=true))  AND (starting_node.is_da IS NULL OR starting_node.is_da=FALSE) AND (starting_node.is_dc IS NULL OR starting_node.is_dc=FALSE)) AND (target <> starting_node AND (((starting_node.is_da IS NULL OR starting_node.is_da=FALSE) AND (starting_node.is_dc IS NULL OR starting_node.is_dc=FALSE)) OR (NOT target.domain CONTAINS '.' + starting_node.domain AND starting_node.domain <> target.domain))) RETURN [n in nodes(path) | ID(n)] AS nodeIds, costs",
         "reverse_path": true,
-        "output_type": "Graph",
+        "output_type": "fastGDS",
         "scope_query": "MATCH (n) WHERE (n:Computer OR (n:User AND n.enabled=true))  AND (n.is_da IS NULL OR n.is_da=FALSE) AND (n.is_dc IS NULL OR n.is_dc=FALSE) RETURN count(n)"
     },
     "nb_computers_laps": {
@@ -670,45 +645,46 @@
     },
     "can_read_laps": {
         "name": "Objects allowed to read LAPS",
-        "request": "MATCH p = (n{path_candidate:true})-[r1:MemberOf*0..]->()-[r2:GenericAll|ReadLAPSPassword|AllExtendedRights|SyncLAPSPassword]->(t:Computer {haslaps:true}) RETURN distinct(n.domain) AS domain, n.name AS name",
-        "output_type": "dict"
+        "request": "MATCH (n{path_candidate:true}) WHERE n:User OR n:Group OR n:Computer WITH n ORDER BY ID(n) SKIP PARAM1 LIMIT PARAM2 MATCH p = (n)-[r1:MemberOf*0..3]->()-[r2:GenericAll|ReadLAPSPassword|AllExtendedRights|SyncLAPSPassword]->(t:Computer{haslaps:true}) WHERE NOT (n)-[:MemberOf*0..3]->()-[:AdminTo]->(t) RETURN DISTINCT n.domain AS source_domain, n.name AS source_name, labels(n) as source_labels, t.domain as target_domain, t.name as target_name",
+        "output_type": "dict",
+        "scope_query": "MATCH (n{path_candidate:true}) WHERE n:User OR n:Group OR n:Computer RETURN count(n)"
     },
     "objects_to_dcsync": {
         "name": "Objects to dcsync",
         "is_a_gds_request": "true",
-        "create_gds_graph": "CALL gds.graph.project.cypher('graph_objects_to_dcsync', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$properties$]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
+        "create_gds_graph": "CALL gds.graph.project.cypher('graph_objects_to_dcsync', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$properties$]->(m) WHERE NOT (m:Domain OR n:Domain) AND NOT (n.is_dag=true or m.is_dag=true) AND NOT (n.is_da=true or m.is_da=true) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_objects_to_dcsync', false) YIELD graphName",
         "request": "MATCH (n{path_candidate:true}) WHERE n.can_dcsync IS NULL AND NOT n.name IS NULL WITH n ORDER BY n.name SKIP PARAM1 LIMIT PARAM2 MATCH p = shortestPath((n)-[r:$properties$*1..$recursive_level$]->(target{can_dcsync:TRUE})) WHERE n<>target RETURN distinct(p) AS p",
-        "gds_request": "MATCH (target{can_dcsync:TRUE}) CALL gds.allShortestPaths.dijkstra.stream('graph_objects_to_dcsync', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE target <> starting_node AND starting_node.path_candidate = TRUE AND starting_node:User RETURN path as p",
-        "output_type": "Graph",
+        "gds_request": "MATCH (target{can_dcsync:TRUE}) CALL gds.allShortestPaths.dijkstra.stream('graph_objects_to_dcsync', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path, costs WITH nodes(path)[-1] AS starting_node, path, costs WHERE target <> starting_node AND starting_node.path_candidate = TRUE AND starting_node:User RETURN [n in nodes(path) | ID(n)] AS nodeIds, costs",
+        "output_type": "fastGDS",
         "scope_query": "MATCH (n{path_candidate:true}) WHERE n.can_dcsync IS NULL AND NOT n.name IS NULL RETURN count(n)",
         "reverse_path": true
     },
     "dom_admin_on_non_dc": {
         "name": "Domain admin with session on non DC computers",
-        "request": "MATCH p=(c:Computer)-[r:HasSession]->(u:User{enabled:true, is_da:true}) WHERE NOT c.name IS NULL and NOT u.name IS NULL and NOT c.is_dc=True RETURN distinct(p) AS p",
+        "request": "MATCH p=(c:Computer{path_candidate:true})-[r:HasSession]->(u:User{enabled:true, is_da:true}) WHERE NOT c.name IS NULL and NOT u.name IS NULL and NOT c.is_dc=True RETURN distinct(p) AS p",
         "output_type": "Graph"
     },
     "unpriv_to_dnsadmins": {
         "name": "Unprivileged users with path to DNSAdmins",
         "is_a_gds_request": "true",
-        "create_gds_graph": "CALL gds.graph.project.cypher('graph_unpriv_to_dnsadmins', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:MemberOf]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
+        "create_gds_graph": "CALL gds.graph.project.cypher('graph_unpriv_to_dnsadmins', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:MemberOf]->(m) WHERE NOT (m:Domain OR n:Domain) AND NOT (n.is_dag=true or m.is_dag=true) AND NOT (n.is_da=true or m.is_da=true) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_unpriv_to_dnsadmins', false) YIELD graphName",
         "request": "MATCH (u:User{path_candidate:true}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 MATCH p=(u)-[r:MemberOf*1..$recursive_level$]->(g:Group{is_dnsadmin:true}) RETURN distinct(p) AS p",
-        "gds_request": "MATCH (target:Group{is_dnsadmin:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_unpriv_to_dnsadmins', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE target <> starting_node AND starting_node.path_candidate = TRUE AND starting_node:User RETURN path as p",
-        "output_type": "Graph",
+        "gds_request": "MATCH (target:Group{is_dnsadmin:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_unpriv_to_dnsadmins', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path, costs WITH nodes(path)[-1] AS starting_node, path, costs WHERE target <> starting_node AND starting_node.path_candidate = TRUE AND starting_node:User RETURN [n in nodes(path) | ID(n)] AS nodeIds, costs",
+        "output_type": "fastGDS",
         "reverse_path": true,
         "scope_query": "MATCH (u:User{path_candidate:true}) RETURN count(u)"
     },
     "rdp_access": {
         "name": "Users with RDP-access to Computers ",
-        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 CALL {WITH u MATCH p=(u)-[r1:MemberOf*1..5]->(m:Group)-[r2:CanRDP]->(c:Computer) RETURN u.name as user, c.name as computer UNION ALL WITH u MATCH p=(u)-[r2:CanRDP]->(c:Computer) RETURN u.name as user, c.name as computer} RETURN DISTINCT user, computer",
+        "request": "MATCH (u:User{enabled:true,is_da:false}) WITH u ORDER BY ID(u) SKIP PARAM1 LIMIT PARAM2 MATCH p=(u)-[r1:MemberOf*0..5]->(m:Group)-[r2:CanRDP]->(c:Computer) RETURN u.name as user, c.name as computer",
         "scope_query": "MATCH (u:User{enabled:true,is_da:false}) RETURN count(u)",
         "output_type": "dict"
     },
     "dc_impersonation": {
         "name": "Non-domain admins that can directly or indirectly impersonate a Domain Controller ",
-        "request": "MATCH (u{ou_candidate:true}) WITH u ORDER BY u.name SKIP PARAM1 LIMIT PARAM2 CALL{WITH u MATCH p=(u)-[r:MemberOf*1..5]->(g:Group)-[r3:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:Computer{is_dc:true}) RETURN p UNION ALL WITH u MATCH p=(u)-[r3:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:Computer{is_dc:true}) RETURN p }RETURN DISTINCT p",
+        "request": "MATCH (u{ou_candidate:true}) WITH u ORDER BY ID(u) SKIP PARAM1 LIMIT PARAM2 MATCH p=(u)-[r:MemberOf*0..3]->(g:Group)-[r3:AddKeyCredentialLink|WriteProperty|GenericAll|GenericWrite|Owns|WriteDacl]->(m:Computer{is_dc:true}) RETURN DISTINCT p",
         "scope_query": "MATCH (u{ou_candidate:true}) RETURN count(u)",
         "output_type": "Graph"
     },
@@ -731,8 +707,8 @@
         "create_gds_graph": "CALL gds.graph.project.cypher('graph_compromise_paths_of_OUs', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:MemberOf|GenericAll|GenericWrite|Owns|WriteOwner|WriteDacl|WriteGPLink]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_compromise_paths_of_OUs', false) YIELD graphName",
         "request": "MATCH (o:OU) WITH o ORDER BY ID(o) SKIP PARAM1 LIMIT PARAM2 MATCH p=shortestPath((u{ou_candidate:true})-[:MemberOf|GenericAll|GenericWrite|Owns|WriteOwner|WriteDacl|WriteGPLink*1..8]->(o:OU)) SET o.vulnerable_OU = TRUE RETURN p",
-        "gds_request": "MATCH (target:OU) CALL gds.allShortestPaths.dijkstra.stream('graph_compromise_paths_of_OUs', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE starting_node.ou_candidate = TRUE SET starting_node.vulnerable_OU=true RETURN path as p",
-        "output_type": "Graph",
+        "gds_request": "MATCH (target:OU) CALL gds.allShortestPaths.dijkstra.stream('graph_compromise_paths_of_OUs', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path, costs WITH nodes(path)[-1] AS starting_node, path, costs WHERE starting_node.ou_candidate = TRUE SET starting_node.vulnerable_OU=true RETURN [n in nodes(path) | ID(n)] AS nodeIds, costs",
+        "output_type": "fastGDS",
         "reverse_path": true,
         "scope_query": "MATCH (o:OU) RETURN count(o)"
     },
@@ -742,8 +718,8 @@
         "create_gds_graph": "CALL gds.graph.project.cypher('graph_vulnerable_OU_impact', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:Contains|MemberOf]->(m) RETURN id(n) as source, id(m) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_vulnerable_OU_impact', false) YIELD graphName",
         "request": "MATCH (o:OU{vulnerable_OU:true}) WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=shortestPath((o)-[:Contains|MemberOf*1..]->(e)) WHERE o <> e AND (e:User OR e:Computer) RETURN p",
-        "gds_request": "MATCH (source:OU{vulnerable_OU:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_vulnerable_OU_impact', {sourceNode: source, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS target_node, path WHERE target_node:User OR target_node:Computer RETURN path as p",
-        "output_type": "Graph",
+        "gds_request": "MATCH (source:OU{vulnerable_OU:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_vulnerable_OU_impact', {sourceNode: source, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path, costs WITH nodes(path)[-1] AS target_node, path, costs WHERE target_node:User OR target_node:Computer RETURN [n in nodes(path) | ID(n)] AS nodeIds, costs",
+        "output_type": "fastGDS",
         "scope_query": "MATCH (o:OU{vulnerable_OU:true}) RETURN count(o)"
     },
     "vuln_functional_level": {
@@ -758,25 +734,25 @@
     },
     "can_read_gmsapassword_of_adm": {
         "name": "Objects allowed to read the GMSA of objects with admincount=True",
-        "request": "CALL {MATCH (o{path_candidate:true}) WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=((o)-[:MemberOf*1..7]->(g:Group)-[:ReadGMSAPassword]->(u:User{is_admin:true})) WHERE o.name<>u.name RETURN DISTINCT(p) UNION ALL MATCH (o{path_candidate:true}) WITH o ORDER BY o.name SKIP PARAM1 LIMIT PARAM2 MATCH p=((o)-[:ReadGMSAPassword]->(u:User{is_admin:true})) WHERE o.name<>u.name RETURN DISTINCT(p) } RETURN p",
+        "request": "MATCH (o{path_candidate:true}) WITH o ORDER BY ID(o) SKIP PARAM1 LIMIT PARAM2 MATCH p=((o)-[:MemberOf*0..5]->(g:Group)-[:ReadGMSAPassword]->(u:User{is_admin:true})) WHERE o.name<>u.name RETURN DISTINCT(p)",
         "output_type": "Graph",
         "scope_query": "MATCH (o{path_candidate:true}) RETURN count(o)"
     },
     "objects_to_operators_member": {
         "name": "Unprivileged users with path to an Operator Member",
         "request": "MATCH (m:User{path_candidate:true}) WITH m ORDER BY m.name SKIP PARAM1 LIMIT PARAM2 MATCH p = shortestPath((m)-[r:$path_to_group_operators_props$*1..$recursive_level$]->(o:User{is_operator_member:true})) WHERE m<>o AND ((o.is_da=true AND o.domain<>m.domain) OR (o.is_da=false)) RETURN DISTINCT(p) as p",
-        "output_type": "Graph", 
+        "output_type": "fastGDS",
         "scope_query": "MATCH (m:User{path_candidate:true}) RETURN count(m)",
         "is_a_gds_request": "true",
-        "create_gds_graph": "CALL gds.graph.project.cypher('graph_objects_to_operators_member', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$path_to_group_operators_props$]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
+        "create_gds_graph": "CALL gds.graph.project.cypher('graph_objects_to_operators_member', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$path_to_group_operators_props$]->(m) WHERE NOT (m:Domain OR n:Domain) AND NOT (n.is_dag=true or m.is_dag=true) AND NOT (n.is_da=true or m.is_da=true) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_objects_to_operators_member', false) YIELD graphName",
-        "gds_request": "MATCH (target:User{is_operator_member:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_objects_to_operators_member', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE starting_node:User AND target <> starting_node AND starting_node.path_candidate = TRUE AND ((target.is_da=true AND target.domain<>starting_node.domain) OR (target.is_da=false)) RETURN path as p",
+        "gds_request": "MATCH (target:User{is_operator_member:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_objects_to_operators_member', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path, costs WITH nodes(path)[-1] AS starting_node, path, costs WHERE starting_node:User AND target <> starting_node AND starting_node.path_candidate = TRUE AND ((target.is_da=true AND target.domain<>starting_node.domain) OR (target.is_da=false)) RETURN [n in nodes(path) | ID(n)] AS nodeIds, costs",
         "reverse_path": true,
         "_comment": "TODO: table with type, account name, is_da (star) and the number of path towards it"
     },
     "objects_to_operators_groups": {
         "name": "Operator Member path to Operators Groups",
-        "request": "MATCH (m:User{is_operator_member:true}) WITH m ORDER BY m.name SKIP PARAM1 LIMIT PARAM2 MATCH p = shortestPath((m)-[r:MemberOf*1..$recursive_level$]->(o:Group{is_group_operator:true})) WHERE (m.is_da=true AND o.domain<>m.domain) OR (m.is_da=false) RETURN DISTINCT(p) as p",
+        "request": "MATCH (m:User{is_operator_member:true}) WITH m ORDER BY ID(m) SKIP PARAM1 LIMIT PARAM2 MATCH p = shortestPath((m)-[r:MemberOf*1..$recursive_level$]->(o:Group{is_group_operator:true})) WHERE (m.is_da=true AND o.domain<>m.domain) OR (m.is_da=false) RETURN DISTINCT(p) as p",
         "output_type": "Graph", 
         "scope_query": "MATCH (m:User{is_operator_member:true}) RETURN count(m)",
         "_comment": "TODO: table with type, account name, is_da (star) and the number of path towards it"
@@ -784,23 +760,23 @@
     "vuln_permissions_adminsdholder": {
         "name": "Dangerous permissions on the adminSDHolder object",
         "is_a_gds_request": "true",
-        "create_gds_graph": "CALL gds.graph.project.cypher('graph_vuln_permissions_adminsdholder', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$properties$]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
+        "create_gds_graph": "CALL gds.graph.project.cypher('graph_vuln_permissions_adminsdholder', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:$properties$]->(m) WHERE NOT (m:Domain OR n:Domain) AND NOT (n.is_dag=true or m.is_dag=true) AND NOT (n.is_da=true or m.is_da=true) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_vuln_permissions_adminsdholder', false) YIELD graphName",
         "request": "MATCH (n:User{path_candidate:true}) WITH n ORDER BY n.name SKIP PARAM1 LIMIT PARAM2 MATCH p = shortestPath((n)-[r:$properties$*1..4]->(target1{is_adminsdholder:true})) WHERE n<>target1 AND NOT ANY(no in nodes(p) WHERE (no.is_da=true AND (no.domain=target1.domain OR target1.domain CONTAINS \".\" + no.domain))) RETURN distinct(p) AS p",
-        "gds_request": "MATCH (target{is_adminsdholder:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_vuln_permissions_adminsdholder', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE starting_node:User AND target <> starting_node AND starting_node.path_candidate = TRUE AND NOT ANY(no in nodes(path) WHERE (no.is_da=true AND (no.domain=target.domain OR target.domain CONTAINS \".\" + no.domain))) RETURN path as p",
-        "output_type": "Graph",
+        "gds_request": "MATCH (target{is_adminsdholder:true}) CALL gds.allShortestPaths.dijkstra.stream('graph_vuln_permissions_adminsdholder', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path, costs WITH nodes(path)[-1] AS starting_node, path, costs WHERE starting_node:User AND target <> starting_node AND starting_node.path_candidate = TRUE AND NOT ANY(no in nodes(path) WHERE (no.is_da=true AND (no.domain=target.domain OR target.domain CONTAINS \".\" + no.domain))) RETURN [n in nodes(path) | ID(n)] AS nodeIds, costs",
+        "output_type": "fastGDS",
         "scope_query": "MATCH (n:User{path_candidate:true}) RETURN count(n)",
         "reverse_path": true,
         "_comment": "TODO : table with les adminsdholder + path with => X objects to SDHolder"
     },
     "da_to_da": {
         "name": "Paths between two domain admins belonging to different domains",
-        "request": "MATCH p=allShortestPaths((g:Group{is_dag:true})-[r:$properties$*1..$recursive_level$]->(gg:Group{is_dag:true})) WHERE g<>gg AND g.domain <> gg.domain RETURN p",
+        "request": "MATCH p=shortestPath((g:Group{is_dag:true})-[r:$properties$*1..$recursive_level$]->(gg:Group{is_dag:true})) WHERE g<>gg AND g.domain <> gg.domain RETURN p",
         "output_type": "Graph"
     },
     "anomaly_acl_1": {
         "name": "anomaly_acl_1",
-        "request": "MATCH (gg) WHERE NOT gg:Group with gg as g MATCH (g)-[r2{isacl:true}]->(n) WHERE ((g.is_da IS NULL OR g.is_da=FALSE) AND (g.is_dc IS NULL OR g.is_dc=FALSE) AND (NOT g.is_adcs OR g.is_adcs IS NULL)) OR (NOT n.domain CONTAINS '.' + g.domain AND n.domain <> g.domain) RETURN n.name,g.name,type(r2),LABELS(g),labels(n),ID(n)",
+        "request": "MATCH (gg) WHERE NOT gg:Group AND ((gg:User AND gg.enabled) OR (gg:Computer AND gg.enabled) OR (NOT (gg:User OR gg:Computer))) WITH gg as g MATCH (g)-[r2{isacl:true}]->(n) WHERE ((g.is_da IS NULL OR g.is_da=FALSE) AND (g.is_dc IS NULL OR g.is_dc=FALSE) AND (NOT g.is_adcs OR g.is_adcs IS NULL)) OR (NOT n.domain CONTAINS '.' + g.domain AND n.domain <> g.domain) RETURN n.name,g.name,type(r2),LABELS(g),labels(n),ID(n)",
         "output_type": "dict"
     },
     "anomaly_acl_2": {
@@ -827,10 +803,10 @@
         "name": "Initialization request for GPOs [WARNING: If this query is too slow, you can use --gpo_low]",
         "request": "MATCH (n:User{path_candidate:true}) WITH n ORDER BY n.name SKIP PARAM1 LIMIT PARAM2 MATCH p = shortestPath((n)-[r:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(g:GPO)) WHERE NOT n=g AND NOT g.name IS NULL RETURN p ",
         "is_a_gds_request": "true",
-        "create_gds_graph": "CALL gds.graph.project.cypher('graph_unpriv_users_to_GPO_init', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns]->(m) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
+        "create_gds_graph": "CALL gds.graph.project.cypher('graph_unpriv_users_to_GPO_init', 'MATCH (n) RETURN id(n) AS id', 'MATCH (n)-[r:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns]->(m) WHERE NOT (m:Domain OR n:Domain) AND NOT (n.is_dag=true or m.is_dag=true) AND NOT (n.is_da=true or m.is_da=true) RETURN id(m) as source, id(n) AS target, r.cost as cost', {validateRelationships: false})",
         "drop_gds_graph": "CALL gds.graph.drop('graph_unpriv_users_to_GPO_init', false) YIELD graphName",
-        "gds_request": "MATCH (target:GPO) CALL gds.allShortestPaths.dijkstra.stream('graph_unpriv_users_to_GPO_init', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path WITH nodes(path)[-1] AS starting_node, path WHERE starting_node:User AND target <> starting_node AND starting_node.path_candidate = TRUE RETURN path as p",
-        "output_type": "Graph",
+        "gds_request": "MATCH (target:GPO) CALL gds.allShortestPaths.dijkstra.stream('graph_unpriv_users_to_GPO_init', {sourceNode: target, relationshipWeightProperty: 'cost', logProgress: false}) YIELD path, costs WITH nodes(path)[-1] AS starting_node, path, costs WHERE starting_node:User AND target <> starting_node AND starting_node.path_candidate = TRUE RETURN [n in nodes(path) | ID(n)] AS nodeIds, costs",
+        "output_type": "fastGDS",
         "scope_query": "MATCH (n:User{path_candidate:true}) RETURN count(n)",
         "postProcessing": "Neo4j.setDangerousInboundOnGPOs",
         "reverse_path": true,
@@ -838,35 +814,35 @@
     },
     "unpriv_users_to_GPO_user_enforced": {
         "name": "Compromisable GPOs to users (enforced)",
-        "request": "MATCH (n:User{enabled:true}) WHERE n.name IS NOT NULL WITH n ORDER BY n.name SKIP PARAM1 LIMIT PARAM2 MATCH p = (g:GPO{dangerous_inbound:true})-[r1:GPLink {enforced:true}]->(container2)-[r2:Contains*1..]->(n) RETURN p",
+        "request": "MATCH (n:User{enabled:true}) WHERE n.name IS NOT NULL WITH n ORDER BY ID(n) SKIP PARAM1 LIMIT PARAM2 MATCH p = (g:GPO{dangerous_inbound:true})-[r1:GPLink {enforced:true}]->(container2)-[r2:Contains*1..]->(n) RETURN p",
         "output_type": "Graph",
         "scope_query": "MATCH (n:User{enabled:true}) WHERE n.name IS NOT NULL RETURN count(n)",
         "_comment": "This is a request for the --gpo_low option"
     },
     "unpriv_users_to_GPO_user_not_enforced": {
         "name": "Compromisable GPOs to users (not enforced)",
-        "request": "MATCH (n:User{enabled:true}) WHERE n.name IS NOT NULL WITH n ORDER BY n.name SKIP PARAM1 LIMIT PARAM2 MATCH p = (g:GPO{dangerous_inbound:true})-[r1:GPLink{enforced:false}]->(container1)-[r2:Contains*1..]->(n) WHERE NONE(x in NODES(p) WHERE x.blocksinheritance = true AND (x:OU)) RETURN p",
+        "request": "MATCH (n:User{enabled:true}) WHERE n.name IS NOT NULL WITH n ORDER BY ID(n) SKIP PARAM1 LIMIT PARAM2 MATCH p = (g:GPO{dangerous_inbound:true})-[r1:GPLink{enforced:false}]->(container1)-[r2:Contains*1..]->(n) WHERE NONE(x in NODES(p) WHERE x.blocksinheritance = true AND (x:OU)) RETURN p",
         "output_type": "Graph",
         "scope_query": "MATCH (n:User{enabled:true}) WHERE n.name IS NOT NULL RETURN count(n)",
         "_comment": "This is a request for the --gpo_low option"
     },
     "unpriv_users_to_GPO_computer_enforced": {
         "name": "Compromisable GPOs to computers (enforced)",
-        "request": "MATCH (n:Computer) WITH n ORDER BY n.name WITH n SKIP PARAM1 LIMIT PARAM2 MATCH p = (g:GPO{dangerous_inbound:true})-[r1:GPLink {enforced:true}]->(container2)-[r2:Contains*1..]->(n) RETURN p",
+        "request": "MATCH (n:Computer) WITH n ORDER BY ID(n) WITH n SKIP PARAM1 LIMIT PARAM2 MATCH p = (g:GPO{dangerous_inbound:true})-[r1:GPLink {enforced:true}]->(container2)-[r2:Contains*1..]->(n) RETURN p",
         "output_type": "Graph",
         "scope_query": "MATCH (n:Computer) RETURN count(n)",
         "_comment": "This is a request for the --gpo_low option"
     },
     "unpriv_users_to_GPO_computer_not_enforced": {
         "name": "Compromisable GPOs to computers (not enforced)",
-        "request": "MATCH (n:Computer) WITH n ORDER BY n.name WITH n SKIP PARAM1 LIMIT PARAM2 MATCH p = (g:GPO{dangerous_inbound:true})-[r1:GPLink{enforced:false}]->(container1)-[r2:Contains*1..]->(n) WHERE NONE(x in NODES(p) WHERE x.blocksinheritance = true AND (x:OU)) RETURN p",
+        "request": "MATCH (n:Computer) WITH n ORDER BY ID(n) WITH n SKIP PARAM1 LIMIT PARAM2 MATCH p = (g:GPO{dangerous_inbound:true})-[r1:GPLink{enforced:false}]->(container1)-[r2:Contains*1..]->(n) WHERE NONE(x in NODES(p) WHERE x.blocksinheritance = true AND (x:OU)) RETURN p",
         "output_type": "Graph",
         "scope_query": "MATCH (n:Computer) RETURN count(n)",
         "_comment": "This is a request for the --gpo_low option"
     },
     "unpriv_users_to_GPO": {
         "name": "Non privileged users to GPO",
-        "request": "MATCH (g:GPO) WITH g ORDER BY g.name SKIP PARAM1 LIMIT PARAM2 OPTIONAL MATCH (g)-[r1:GPLink {enforced:false}]->(container1) WITH g,container1 OPTIONAL MATCH (g)-[r2:GPLink {enforced:true}]->(container2) WITH g,container1,container2 OPTIONAL MATCH p = (g)-[r1:GPLink]->(container1)-[r2:Contains*1..8]->(n1:Computer) WHERE NONE(x in NODES(p) WHERE x.blocksinheritance = true AND (x:OU)) WITH g,p,container2,n1 OPTIONAL MATCH p2 = (g)-[r1:GPLink]->(container2)-[r2:Contains*1..8]->(n2:Computer) RETURN p",
+        "request": "MATCH (g:GPO) WITH g ORDER BY ID(g) SKIP PARAM1 LIMIT PARAM2 OPTIONAL MATCH (g)-[r1:GPLink {enforced:false}]->(container1) WITH g,container1 OPTIONAL MATCH (g)-[r2:GPLink {enforced:true}]->(container2) WITH g,container1,container2 OPTIONAL MATCH p = (g)-[r1:GPLink]->(container1)-[r2:Contains*1..8]->(n1:Computer) WHERE NONE(x in NODES(p) WHERE x.blocksinheritance = true AND (x:OU)) WITH g,p,container2,n1 OPTIONAL MATCH p2 = (g)-[r1:GPLink]->(container2)-[r2:Contains*1..8]->(n2:Computer) RETURN p",
         "output_type": "Graph",
         "scope_query": "MATCH (g:GPO) RETURN COUNT(g)",
         "_comment": "this is the normal version of the GPO request"
@@ -905,6 +881,22 @@
         "name": "FGPP applied to users directly or via groups",
         "request": "MATCH (u:User) WHERE u.fgpp_name IS NOT NULL RETURN u.fgpp_msds_psoappliesto, u.fgpp_name, u.fgpp_msds_minimumpasswordlength, u.fgpp_msds_minimumpasswordage, u.fgpp_msds_maximumpasswordage, u.fgpp_msds_passwordreversibleencryptionenabled, u.fgpp_msds_passwordhistorylength, u.fgpp_msds_passwordcomplexityenabled, u.fgpp_msds_lockoutduration, u.fgpp_msds_lockoutthreshold, u.fgpp_msds_lockoutobservationwindow",
         "output_type": "list"
+    },
+    "esc15_adcs_privilege_escalation": {
+        "name": "Check for potential ESC15 attacks (ADCS privilege escalation) and create associated edge",
+        "request": "MATCH p=(x:Base)-[:MemberOf*0..]->()-[:Enroll|AllExtendedRights]->(ct:CertTemplate)-[:PublishedTo]->(:EnterpriseCA)-[:TrustedForNTAuth]->(:NTAuthStore)-[:NTAuthStoreFor]->(d:Domain) WHERE ct.enrolleesuppliessubject = True AND ct.authenticationenabled = False AND ct.requiresmanagerapproval = False AND ct.schemaversion = 1 CREATE (x)-[:ADCSESC15]->(d)",
+        "output_type": "list",
+        "is_a_write_request": "true"
+    },
+    "smb_signing": {
+        "name": "SMB signing",
+        "request": "MATCH (c:Computer) RETURN c.name AS name, c.domain AS domain, c.smbsigning AS smbsigning, c.is_dc AS dc, c.is_server AS server, toInteger(($extract_date$ - c.lastlogontimestamp)/86400) AS lastlogontimestamp",
+        "output_type": "dict"
+    },
+    "ldap_server_configuration": {
+        "name": "LDAP and LDAPS configuration",
+        "request":"MATCH (c) WHERE c.ldapavailable OR c.ldapsavailable RETURN c.name AS name, c.domain AS domain, c.ldapavailable AS ldap, c.ldapsavailable AS ldaps, c.ldapsigning AS ldapsigning, c.ldapsepa AS ldapsepa",
+        "output_type": "dict"
     },
     "azure_set_gag": {
         "name": "Set gag=TRUE to Global admin group",
