@@ -101,13 +101,13 @@ docker build -t ad-miner .
 To run this on Windows with the BloodHound Community Edition data, use the commands below:
 
 ```sh
-docker run -v ${PWD}:/tmp ad-miner AD-miner -b bolt://host.docker.internal:7687 -u neo4j -p bloodhoundcommunityedition -cf YOUR_PREFIX
+docker run -v ${PWD}:/tmp ad-miner AD-miner -b bolt://host.docker.internal:7687 -u neo4j -p mypassword -cf YOUR_PREFIX
 ```
 
 To run this on Linux with the BloodHound Community Edition data, use the commands below:
 
 ```sh
-docker run -v ${PWD}:/tmp --network host ad-miner AD-miner -b bolt://localhost:7687 -u neo4j -p bloodhoundcommunityedition -cf YOUR_PREFIX
+docker run -v ${PWD}:/tmp --network host ad-miner AD-miner -b bolt://localhost:7687 -u neo4j -p mypassword -cf YOUR_PREFIX
 ```
 
 Note that mounting the volume with `-v` is critical to get the output of the data. This assumes that the BHCE server is running on the Docker host with default settings. 
