@@ -68,12 +68,12 @@ class users_pwd_not_changed_since(Control):
             tmp_data = {"user": dict["user"]}
             if dict["user"] in self.admin_list:
                 tmp_data["user"] = (
-                    '<i class="bi bi-gem" title="This user is domain admin"></i> '
+                    '<i class="bi bi-gem" title="This user is domain admin"></i>'
                     + tmp_data["user"]
                 )
             else:
                 tmp_data["user"] = (
-                    '<i class="bi bi-person-fill"></i> ' + tmp_data["user"]
+                    '<i class="bi bi-person-fill"></i>' + tmp_data["user"]
                 )
             tmp_data["Last password change"] = days_format(dict["days"])
             tmp_data["Account Creation Date"] = days_format(dict["accountCreationDate"])
@@ -91,7 +91,7 @@ class users_pwd_not_changed_since(Control):
             else 0
         )
 
-        self.name_description = f"{self.data} unchanged passwords > {int(int(self.arguments.renewal_password)/30)} months"
+        self.name_description = f"{self.data} unchanged passwords > ${int(int(self.arguments.renewal_password)/30)}$ months"
 
     def get_rating(self) -> int:
         return percentage_superior(

@@ -19,7 +19,7 @@ class azure_dormant_accounts(Control):
         self.category = "az_misc"
         self.control_key = "azure_dormant_accounts"
 
-        self.title = "Azure dormant accounts"
+        self.title = "Entra ID dormant accounts"
         self.description = "Users who did not login for 3 months"
         self.risk = "An account which has not been used for a long time but is still enabled may be used by attackers as they keep their privilege."
         self.poa = (
@@ -47,7 +47,7 @@ class azure_dormant_accounts(Control):
                 self.azure_dormant_accounts_90_days.append(user)
                 data.append(
                     {
-                        "Name": '<i class="bi bi-person-fill"></i> ' + user["Name"],
+                        "Name": '<i class="bi bi-person-fill"></i>' + user["Name"],
                         "Last logon": days_format(user["lastlogon"]),
                         "Creation date": days_format(user["whencreated"]),
                     }

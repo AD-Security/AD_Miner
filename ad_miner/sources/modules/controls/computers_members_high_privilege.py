@@ -45,9 +45,9 @@ class computers_members_high_privilege(Control):
         )
         grid = Grid("List of computer admins")
         for d in self.computers_members_high_privilege:
-            d["domain"] = '<i class="bi bi-globe2"></i> ' + d["domain"]
-            d["computer"] = '<i class="bi bi-pc-display"></i> ' + d["computer"]
-            d["group"] = '<i class="bi bi-people-fill"></i> ' + d["group"]
+            d["domain"] = '<i class="bi bi-globe2"></i>' + d["domain"]
+            d["computer"] = '<i class="bi bi-pc-display"></i>' + d["computer"]
+            d["group"] = '<i class="bi bi-people-fill"></i>' + d["group"]
         grid.setheaders(["domain", "computer", "group"])
         grid.setData(self.computers_members_high_privilege)
         page.addComponent(grid)

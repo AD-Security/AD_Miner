@@ -3,12 +3,12 @@ from ad_miner.sources.modules.controls import register_control
 
 from ad_miner.sources.modules.page_class import Page
 from ad_miner.sources.modules.grid_class import Grid
+from ad_miner.sources.modules.node_neo4j import Node
+from ad_miner.sources.modules.path_neo4j import Path
 from ad_miner.sources.modules.utils import grid_data_stringify
-from ad_miner.sources.modules import generic_formating, generic_computing
-from ad_miner.sources.modules.common_analysis import (
-    findAndCreatePathToDaFromComputersList,
-    hasPathToDA,
-)
+from ad_miner.sources.modules import generic_computing
+from ad_miner.sources.modules.common_analysis import createGraphPage, hasPathToDA
+
 import json
 from urllib.parse import quote
 
@@ -39,7 +39,20 @@ class computers_admin_of_computers(Control):
             "computers_admin_on_computers"
         ]
 
+        self.dico_computers_to_da = self.requests_results["dico_computers_to_da"]
+
     def run(self):
+
+        # As this file is absolutely horrendous, quick and dirty fix to have SMB signing data
+        self.smbsigning_dic = {}
+        for d in self.list_computers_admin_computers:
+            self.smbsigning_dic[d["target_computer"]] = d["smbsigning"]
+
+        self.total_targets_requiring_signing = 0
+        for d in self.smbsigning_dic.keys():
+            if self.smbsigning_dic[d]:
+                self.total_targets_requiring_signing += 1
+
         if self.list_computers_admin_computers is None:
             return
         computers_admin_to_count = generic_computing.getCountValueFromKey(
@@ -55,22 +68,27 @@ class computers_admin_of_computers(Control):
         )
         self.computers_admin_data_grid = []
         for admin_computer, computers_list in computers_admin_to_list.items():
+            targets_without_signing = []
+            for c in computers_list:
+                if not self.smbsigning_dic[c]:
+                    targets_without_signing.append(c)
+            count_require_signing = len(computers_list) - len(targets_without_signing)
             if admin_computer is not None and computers_list is not None:
                 num_path, nb_domains = findAndCreatePathToDaFromComputersList(
                     self.requests_results,
                     self.arguments,
                     admin_computer,
-                    computers_list,
+                    targets_without_signing,
+                    self.dico_computers_to_da,
                 )
                 sortClass1 = str(computers_admin_to_count[admin_computer]).zfill(6)
                 sortClass2 = str(num_path).zfill(6)
 
                 tmp_line = {
-                    "Computer Admin": '<i class="bi bi-pc-display"></i> '
-                    + admin_computer,
+                    "Computer Admin": '<i class="bi bi-pc-display"></i>' + admin_computer,
                     "Computers count": grid_data_stringify(
                         {
-                            "value": f"{computers_admin_to_count[admin_computer]} computers",
+                            "value": f"{computers_admin_to_count[admin_computer]} computers ({count_require_signing} require SMB signing)",
                             "link": f"computer_admin_{quote(str(admin_computer))}.html",
                             "before_link": f"<i class='bi bi-pc-display {sortClass1}'></i>",
                         }
@@ -79,9 +97,9 @@ class computers_admin_of_computers(Control):
                 if num_path > 0:
                     tmp_line["Paths to domain admin"] = grid_data_stringify(
                         {
-                            "value": f"{num_path} paths to DA ({nb_domains} domain{'s' if nb_domains>1 else ''} impacted)",
+                            "value": f"{num_path} paths to DA ({nb_domains} domain{'s' if nb_domains > 1 else ''} impacted)",
                             "link": f"computers_path_to_da_from_{quote(str(admin_computer))}.html",
-                            "before_link": f"<i class='bi bi-shuffle {sortClass2}' aria-hidden='true'></i>",
+                            "before_link": f"<i class='bi bi-sign-turn-right-fill {sortClass2}' style='color:#b00404;' aria-hidden='true'></i>",
                         }
                     )
                 else:
@@ -115,12 +133,21 @@ class computers_admin_of_computers(Control):
                     self.dico_description_computer_admin,
                 )
                 grid = Grid("List of computers where %s is admin" % (computer))
-                grid.addheader(computer)
-                computers_admin_to_list = generic_formating.formatGridValues1Columns(
-                    values, grid.getHeaders()
-                )
-
-                grid.setData(computers_admin_to_list)
+                grid.setheaders([computer, "SMB signing required"])
+                data = []
+                for c in values:
+                    if self.smbsigning_dic[c] is None:
+                        signing_required = "<i class='bi bi-question-circle'></i>Not collected"
+                    elif self.smbsigning_dic[c]:
+                        signing_required = (
+                            '<i class="bi bi-lock-fill text-success"></i>Signing required'
+                        )
+                    else:
+                        signing_required = (
+                            '<i class="bi bi-unlock-fill text-danger"></i>Signing not required'
+                        )
+                    data.append({computer: c, "SMB signing required": signing_required})
+                grid.setData(data)
                 page.addComponent(grid)
                 page.render()
             else:
@@ -130,7 +157,64 @@ class computers_admin_of_computers(Control):
         self.data = self.count_computers_admins if self.count_computers_admins else 0
 
         # TODO define the sentence that will be displayed in the 'smolcard' view and in the center of the mainpage
-        self.name_description = f"{self.count_computers_admins} computers admin of {self.count_computers_admins_target} computers"
+        self.name_description = f"{self.count_computers_admins} computers admin of {self.count_computers_admins_target} computers ({self.total_targets_requiring_signing} require SMB signing)"
 
     def get_rating(self) -> int:
-        return hasPathToDA(self.list_computers_admin_computers)
+        for d in self.list_computers_admin_computers:
+            if d["has_path_to_da"] and not d["smbsigning"]:
+                return 1
+        if len(self.list_computers_admin_computers) > 0:
+            return 2
+        return 5
+
+
+def findAndCreatePathToDaFromComputersList(
+    requests_results, arguments, admin_computer, computers, dico_computers_to_da
+) -> tuple([int, int]):
+    """
+    Returns the number of path to DA from admin_computer and the number of domains impacted
+    """
+    dico_description_computers_path_to_da = {
+        "description": "All compromission paths from computers to domain administrators.",
+        "risk": "This graph shows all the paths that an attacker could take to become domain admin if they had compromised a computer. These paths show potential privilege escalation paths in the domain. If an attacker compromises a computer, he could use these paths to become domain admin.",
+        "poa": "Review these paths and make sure that they are not exploitable. Cut some of the links between the Active Directory objects by changing configuration in order to reduce the number of possible paths.",
+    }
+
+    computers_to_domain_admin = requests_results["computers_to_domain_admin"]
+    if computers_to_domain_admin is None:
+        return 0, 0
+    path_to_generate = []
+
+    domains = []
+
+    for computer in computers:
+        if computer not in dico_computers_to_da:
+            continue
+        for path in dico_computers_to_da[computer]:
+            domains.append(path.nodes[-1].domain)
+
+            # relation = Relation(
+            #     id=88888, nodes=[node_to_add, path.nodes[0]], type="Relay"
+            # )
+            node_to_add = Node(
+                id=42424243,
+                labels="Computer",
+                name=admin_computer,
+                domain="start",
+                tenant_id=None,
+                relation_type="Relay",
+            )
+            new_nodes = path.nodes.copy()
+            new_nodes.insert(0, node_to_add)
+            new_path = Path(new_nodes)
+            path_to_generate.append(new_path)
+    if len(path_to_generate):
+        createGraphPage(
+            arguments.cache_prefix,
+            "computers_path_to_da_from_%s" % admin_computer,
+            "Path to domain admins",
+            dico_description_computers_path_to_da,
+            path_to_generate,
+            requests_results,
+        )
+    return len(path_to_generate), len(list(set(domains)))

@@ -16,10 +16,10 @@ class azure_aadconnect_users(Control):
         self.category = "az_permissions"
         self.control_key = "azure_aadconnect_users"
 
-        self.title = "Users possibly related to AADConnect"
-        self.description = "All Users and Azure Users possibly related to AADConnect"
-        self.risk = "If the list of users linked to AADConnect does not respect the principle of least privilege, this increases the attack surface."
-        self.poa = "Review and clean up the liste users related to AADConnect"
+        self.title = "Users possibly related to Microsoft Entra Connect"
+        self.description = "All Users and Entra ID Users possibly related to Microsoft Entra Connect"
+        self.risk = "If the list of users linked to Microsoft Entra Connect does not respect the principle of least privilege, this increases the attack surface."
+        self.poa = "Review and clean up the liste users related to Microsoft Entra Connect"
 
         self.azure_aadconnect_users = requests_results["azure_aadconnect_users"]
 
@@ -30,18 +30,18 @@ class azure_aadconnect_users(Control):
         page = Page(
             self.arguments.cache_prefix,
             "azure_aadconnect_users",
-            "Azure users with AADConnect session",
+            "Entra ID users with Microsoft Entra Connect session",
             self.get_dico_description(),
         )
-        grid = Grid("Azure users with AADConnect session")
+        grid = Grid("Entra ID users with Microsoft Entra Connect session")
 
         data = []
         for user in self.azure_aadconnect_users:
             data.append(
                 {
-                    "Tenant ID": '<i class="bi bi-file-earmark-person"></i> '
+                    "Tenant ID": '<i class="bi bi-file-earmark-person"></i>'
                     + f'{user["Tenant ID"] if user["Tenant ID"] != None else "-"}',
-                    "Name": '<i class="bi bi-people-fill"></i> ' + user["Name"],
+                    "Name": '<i class="bi bi-people-fill"></i>' + user["Name"],
                     "Session": user["Session"] if user["Session"] != None else "-",
                 }
             )
@@ -54,7 +54,7 @@ class azure_aadconnect_users(Control):
 
         self.data = len(self.azure_aadconnect_users)
         self.name_description = (
-            f"{len(self.azure_aadconnect_users)} users with AADConnect session"
+            f"{len(self.azure_aadconnect_users)} users with Microsoft Entra Connect session"
         )
 
     def get_rating(self) -> int:

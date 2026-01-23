@@ -49,8 +49,8 @@ class objects_to_operators_member(Control):
                     data[path.nodes[0].name]["target"].append(path.nodes[-1].name)
             except KeyError:
                 data[path.nodes[0].name] = {
-                    "domain": '<i class="bi bi-globe2"></i> ' + path.nodes[-1].domain,
-                    "name": '<i class="bi bi-people-fill"></i> ' + path.nodes[0].name,
+                    "domain": '<i class="bi bi-globe2"></i>' + path.nodes[-1].domain,
+                    "name": '<i class="bi bi-people-fill"></i>' + path.nodes[0].name,
                     "link": quote(str(path.nodes[0].name)),
                     "target": [path.nodes[-1].name],
                     "paths": [path],
@@ -63,8 +63,8 @@ class objects_to_operators_member(Control):
                 KeyError
             ):  # Really **should not** happen, but to prevent crash in case of corrupted cache/db
                 data[path.nodes[-1].name] = {
-                    "domain": '<i class="bi bi-globe2"></i> ' + path.nodes[-1].domain,
-                    "name": '<i class="bi bi-people-fill"></i> ' + path.nodes[-1].name,
+                    "domain": '<i class="bi bi-globe2"></i>' + path.nodes[-1].domain,
+                    "name": '<i class="bi bi-people-fill"></i>' + path.nodes[-1].name,
                     "link": quote(str(path.nodes[-1].name)),
                     "target": [""],
                     "paths": [path],
@@ -81,7 +81,7 @@ class objects_to_operators_member(Control):
                     {
                         "value": f"{len(d['paths'])} paths target{'s' if len(d['target'])>1 else ''}",
                         "link": f"objects_to_operators_{quote(str(d['link']))}.html",
-                        "before_link": f"<i class='{sortClass} bi bi-shuffle' aria-hidden='true'></i>",
+                        "before_link": f"<i class='{sortClass} bi bi-sign-turn-right' aria-hidden='true'></i>",
                     }
                 ),
                 "targets": ",".join(d["target"]),

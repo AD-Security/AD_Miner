@@ -41,9 +41,9 @@ class krb_last_change(Control):  # TODO change the class name
 
         data = []
         for dict in self.users_krb_pwd_last_set:
-            tmp_data = {"domain": '<i class="bi bi-globe2"></i> ' + dict["domain"]}
+            tmp_data = {"domain": '<i class="bi bi-globe2"></i>' + dict["domain"]}
             tmp_data["name"] = (
-                '<i class="bi bi-ticket-perforated-fill"></i> ' + dict["name"]
+                '<i class="bi bi-ticket-perforated-fill"></i>' + dict["name"]
             )
             tmp_data["Last password change"] = days_format(dict["pass_last_change"])
             tmp_data["Account Creation Date"] = days_format(dict["accountCreationDate"])

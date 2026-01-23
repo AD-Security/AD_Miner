@@ -33,10 +33,10 @@ class azure_reset_passwd(Control):
         page = Page(
             self.arguments.cache_prefix,
             "azure_reset_passwd",
-            "Azure users with passwords reset privilege",
+            "Entra ID users with passwords reset privilege",
             self.get_dico_description(),
         )
-        grid = Grid("Azure users with passwords reset privilege")
+        grid = Grid("Entra ID users with passwords reset privilege")
 
         self.reset_passwd = {}
         for path in self.azure_reset_passwd:
@@ -65,7 +65,7 @@ class azure_reset_passwd(Control):
 
             data.append(
                 {
-                    "Privileged user": '<i class="bi bi-person-fill"></i> ' + user,
+                    "Privileged user": '<i class="bi bi-person-fill"></i>' + user,
                     "Passwords that can be reset": grid_data_stringify(
                         {
                             "link": f"passwords_reset_{hash}.html",

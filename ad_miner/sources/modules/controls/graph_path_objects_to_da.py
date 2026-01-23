@@ -48,9 +48,7 @@ class graph_path_objects_to_da(Control):
         }
 
     def run(self):
-
         self.generatePathToDa()
-
         self.data = (
             len(
                 list(
@@ -82,10 +80,10 @@ class graph_path_objects_to_da(Control):
                 return 1
         for domain in self.computers_to_domain_admin:
             if len(self.computers_to_domain_admin[domain]) > 0:
-                return 1
+                return 2
         for domain in self.groups_to_domain_admin:
             if len(self.groups_to_domain_admin[domain]) > 0:
-                return 1
+                return 3
         return 5
 
     def generatePathToDa(
@@ -97,7 +95,11 @@ class graph_path_objects_to_da(Control):
 
         for domain in self.domains:
             domain = domain[0]
-            if len(self.users_to_domain[domain]):
+            logger.print_debug(f"Generating paths to DA pages for {domain}")
+
+            count_users = len(self.users_to_domain[domain])
+            logger.print_debug(f"Trying to generate users to DA graph page with {count_users} paths")
+            if count_users:
                 createGraphPage(
                     self.arguments.cache_prefix,
                     domain + f"_users_to_{file_variable}",
@@ -106,7 +108,10 @@ class graph_path_objects_to_da(Control):
                     self.users_to_domain[domain],
                     self.requests_results,
                 )
-            if len(self.computers_to_domain[domain]):
+
+            count_computers = len(self.computers_to_domain[domain])
+            logger.print_debug(f"Trying to generate computers to DA graph page with {count_computers} paths")
+            if count_computers:
                 createGraphPage(
                     self.arguments.cache_prefix,
                     domain + f"_computers_to_{file_variable}",
@@ -115,7 +120,10 @@ class graph_path_objects_to_da(Control):
                     self.computers_to_domain[domain],
                     self.requests_results,
                 )
-            if len(self.groups_to_domain[domain]):
+
+            count_groups = len(self.groups_to_domain[domain])
+            logger.print_debug(f"Trying to generate groups to DA graph page with {count_groups} paths")
+            if count_groups:
                 createGraphPage(
                     self.arguments.cache_prefix,
                     domain + f"_groups_to_{file_variable}",
@@ -139,12 +147,12 @@ class graph_path_objects_to_da(Control):
             """
             Count the numbers of object leading to DA instead of counting number of path.
             """
-            entries = []
+            entries = {}
             for path in list_of_paths:
                 start = path.nodes[0].name
                 if start not in entries:
-                    entries.append(start)
-            return len(entries)
+                    entries[start] = True
+            return len(entries.keys())
 
         # generating graph object to da grid
         page = Page(
@@ -167,7 +175,7 @@ class graph_path_objects_to_da(Control):
             domain = domain[0]
             tmp_data = {}
 
-            tmp_data[headers[0]] = '<i class="bi bi-globe2"></i> ' + domain
+            tmp_data[headers[0]] = '<i class="bi bi-globe2"></i>' + domain
 
             count = count_object_from_path(self.users_to_domain[domain])
             sortClass = str(count).zfill(
@@ -176,14 +184,14 @@ class graph_path_objects_to_da(Control):
             if count != 0:
                 tmp_data[headers[1]] = grid_data_stringify(
                     {
-                        "value": f"{count} (<i class='bi bi-shuffle' aria-hidden='true'></i> {len(self.users_to_domain_admin[domain])})",
+                        "value": f"{count} (<i class='bi bi-sign-turn-right-fill' style='color:#b00404;' aria-hidden='true'></i>{len(self.users_to_domain_admin[domain])})",
                         "link": "%s_users_to_da.html" % quote(str(domain)),
-                        "before_link": f"<i class='bi bi-person-fill {sortClass}' aria-hidden='true'></i> ",
+                        "before_link": f"<i class='bi bi-person-fill {sortClass}' aria-hidden='true'></i>",
                     }
                 )
             else:
                 tmp_data[headers[1]] = (
-                    "<i class='bi bi-person-fill %s' aria-hidden='true'></i> %s (<i class='bi bi-shuffle' aria-hidden='true'></i> %s)"
+                    "<i class='bi bi-person-fill %s' aria-hidden='true'></i>%s (<i class='bi bi-sign-turn-right' aria-hidden='true'></i>%s)"
                     % (sortClass, count, len(self.users_to_domain_admin[domain]))
                 )
             self.total_object += count
@@ -195,14 +203,14 @@ class graph_path_objects_to_da(Control):
             if count != 0:
                 tmp_data[headers[2]] = grid_data_stringify(
                     {
-                        "value": f"{count} (<i class='bi bi-shuffle' aria-hidden='true'></i> {len(self.computers_to_domain_admin[domain])})",
+                        "value": f"{count} (<i class='bi bi-sign-turn-right-fill' style='color:#b00404;' aria-hidden='true'></i>{len(self.computers_to_domain_admin[domain])})",
                         "link": "%s_computers_to_da.html" % quote(str(domain)),
                         "before_link": f"<i class='bi bi-pc-display-horizontal {sortClass}' aria-hidden='true'></i>",
                     }
                 )
             else:
                 tmp_data[headers[2]] = (
-                    "<i class='bi bi-pc-display-horizontal %s' aria-hidden='true'></i> %s (<i class='bi bi-shuffle' aria-hidden='true'></i> %s)"
+                    "<i class='bi bi-pc-display-horizontal %s' aria-hidden='true'></i>%s (<i class='bi bi-sign-turn-right' aria-hidden='true'></i>%s)"
                     % (sortClass, count, len(self.computers_to_domain_admin[domain]))
                 )
             self.total_object += count
@@ -214,14 +222,14 @@ class graph_path_objects_to_da(Control):
             if count != 0:
                 tmp_data[headers[3]] = grid_data_stringify(
                     {
-                        "value": f"{count} (<i class='bi bi-shuffle' aria-hidden='true'></i> {len(self.groups_to_domain_admin[domain])})",
+                        "value": f"{count} (<i class='bi bi-sign-turn-right' aria-hidden='true'></i>{len(self.groups_to_domain_admin[domain])})",
                         "link": "%s_groups_to_da.html" % quote(str(domain)),
                         "before_link": f"<i class='bi bi-people-fill {sortClass}' aria-hidden='true'></i>",
                     }
                 )
             else:
                 tmp_data[headers[3]] = (
-                    "<i class='bi bi-people-fill %s' aria-hidden='true'></i> %s (<i class='bi bi-shuffle' aria-hidden='true'></i> %s)"
+                    "<i class='bi bi-people-fill %s' aria-hidden='true'></i>%s (<i class='bi bi-sign-turn-right' aria-hidden='true'></i>%s)"
                     % (sortClass, count, len(self.groups_to_domain_admin[domain]))
                 )
             self.total_object += count

@@ -123,6 +123,8 @@ class graph_path_objects_to_ou_handlers(Control):
         grid.setheaders(headers)
         grid_data = []
 
+        self.maxInterest = 0
+
         for OU_node in analysis_dict:
 
             inbound_list = [
@@ -258,6 +260,8 @@ class graph_path_objects_to_ou_handlers(Control):
                             interest,
                         )
 
+            self.maxInterest = max(interest, self.maxInterest)
+
             # Color for stars
             if interest == 3:
                 color = "red"
@@ -280,9 +284,14 @@ class graph_path_objects_to_ou_handlers(Control):
         page.addComponent(grid)
         page.render()
 
-        self.data = len(self.compromise_paths_of_OUs) if self.compromise_paths_of_OUs else 0
+        self.data = len(analysis_dict.keys())
 
-        self.name_description = f"{len(self.compromise_paths_of_OUs or [])} dangerous control paths over OUs"
+        self.name_description = f"{self.data} dangerous control paths over OUs"
 
     def get_rating(self) -> int:
-        return presence_of(self.compromise_paths_of_OUs)
+        if self.data == 0:
+            return 5
+        elif self.maxInterest >= 2:
+            return 1
+        else:
+            return 3

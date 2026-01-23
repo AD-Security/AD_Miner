@@ -59,13 +59,13 @@ class users_shadow_credentials(Control):  # TODO change the class name
         for d in data.values():
             sortClass = str(len(d["paths"])).zfill(6)
             tmp_grid_data = {
-                "domain": '<i class="bi bi-globe2"></i> ' + d["domain"],
-                "name": '<i class="bi bi-person-fill"></i> ' + d["name"],
+                "domain": '<i class="bi bi-globe2"></i>' + d["domain"],
+                "name": '<i class="bi bi-person-fill"></i>' + d["name"],
                 "target": grid_data_stringify(
                     {
                         "value": f"{len(d['paths'])} paths to {len(d['target'])} target{'s' if len(d['target'])>1 else ''}",
                         "link": f"users_shadow_credentials_from_{quote(str(d['name']))}.html",
-                        "before_link": f"<i class='{sortClass} bi bi-shuffle' aria-hidden='true'></i>",
+                        "before_link": f"<i class='{sortClass} bi bi-sign-turn-right' aria-hidden='true'></i>",
                     }
                 ),
             }

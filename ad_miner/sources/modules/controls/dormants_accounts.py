@@ -46,23 +46,24 @@ class dormants_accounts(Control):
             self.get_dico_description(),
         )
         grid = Grid("Dormants accounts")
-        grid.setheaders(["domain", "name", "last logon", "Account Creation Date"])
+        grid.setheaders(["domain", "name", "display name", "last logon", "Account Creation Date", "distinguished name"])
 
         data = []
         for dict in self.users_dormant_accounts:
-            tmp_data = {"domain": '<i class="bi bi-globe2"></i> ' + dict["domain"]}
+            tmp_data = {"domain": '<i class="bi bi-globe2"></i>' + dict["domain"]}
 
             tmp_data["name"] = (
                 (
-                    '<i class="bi bi-gem" title="This user is domain admin"></i> '
+                    '<i class="bi bi-gem" title="This user is domain admin"></i>'
                     + dict["name"]
                 )
                 if dict["name"] in self.admin_list
-                else '<i class="bi bi-person-fill"></i> ' + dict["name"]
+                else '<i class="bi bi-person-fill"></i>' + dict["name"]
             )
-
+            tmp_data["display name"] = dict["displayname"] if dict["displayname"] else 'N/A'
             tmp_data["last logon"] = days_format(dict["days"])
             tmp_data["Account Creation Date"] = days_format(dict["accountCreationDate"])
+            tmp_data["distinguished name"] = dict["distinguishedname"]
 
             data.append(tmp_data)
 

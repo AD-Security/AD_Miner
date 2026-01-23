@@ -32,10 +32,10 @@ class privileged_accounts_outside_Protected_Users(Control):
         page = Page(
             self.arguments.cache_prefix,
             "privileged_accounts_outside_Protected_Users",
-            "Priviledged accounts not part of the Protected Users group",
+            "Privileged accounts not part of the Protected Users group",
             self.get_dico_description(),
         )
-        grid = Grid("Priviledged accounts not part of the Protected Users group")
+        grid = Grid("Privileged accounts not part of the Protected Users group")
         grid.setheaders(
             [
                 "domain",
@@ -55,8 +55,8 @@ class privileged_accounts_outside_Protected_Users(Control):
         for dic in self.users_nb_domain_admins:
             if "Protected Users" in dic["admin type"]:
                 continue
-            tmp_data = {"domain": '<i class="bi bi-globe2"></i> ' + dic["domain"]}
-            tmp_data["name"] = '<i class="bi bi-gem"></i> ' + dic["name"]
+            tmp_data = {"domain": '<i class="bi bi-globe2"></i>' + dic["domain"]}
+            tmp_data["name"] = '<i class="bi bi-gem"></i>' + dic["name"]
             tmp_data["domain admin"] = (
                 '<i class="bi bi-check-square-fill"></i><span style="display:none">True</span>'
                 if "Domain Admin" in dic["admin type"]
@@ -88,7 +88,7 @@ class privileged_accounts_outside_Protected_Users(Control):
                 else '<i class="bi bi-square"></i>'
             )
             tmp_data["protected user"] = (
-                '<i class="bi bi-x-circle" style="color: rgb(255, 89, 94);"></i> Unprotected'
+                '<i class="bi bi-x-circle" style="color: rgb(255, 89, 94);"></i>Unprotected'
             )
             data.append(tmp_data)
 
@@ -105,9 +105,7 @@ class privileged_accounts_outside_Protected_Users(Control):
         )
 
         # TODO define the sentence that will be displayed in the 'smolcard' view and in the center of the mainpage
-        self.name_description = (
-            f"{self.data} priviledged accounts not in Protected Users group"
-        )
+        self.name_description = f"{self.data} privileged accounts not in Protected Users group"
 
     def get_rating(self) -> int:
         return presence_of(
@@ -115,5 +113,6 @@ class privileged_accounts_outside_Protected_Users(Control):
                 dic
                 for dic in self.users_nb_domain_admins
                 if "Protected Users" not in dic["admin type"]
-            ]
+            ],
+            criticity=2,
         )

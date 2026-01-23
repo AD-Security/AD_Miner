@@ -15,7 +15,7 @@ class azure_users_paths_high_target(Control):
         self.control_key = "azure_users_paths_high_target"
 
         self.title = "Entra ID users with path high value targets"
-        self.description = "All Azure users that can compromise a high value target"
+        self.description = "All Entra ID users that can compromise a high value target"
         self.risk = "Some of these paths could lead to a partial or full compromission of the tenant"
         self.poa = "Review and clean up the privileges of these accounts to lower the risk of compromission"
 
@@ -29,7 +29,7 @@ class azure_users_paths_high_target(Control):
         createGraphPage(
             self.arguments.cache_prefix,
             "azure_users_paths_high_target",
-            "Azure Users with paths to high target",
+            "Entra ID Users with paths to high target",
             self.get_dico_description(),
             self.azure_users_paths_high_target,
             self.requests_results,

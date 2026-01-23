@@ -3,9 +3,8 @@ from ad_miner.sources.modules.controls import register_control
 
 from ad_miner.sources.modules.page_class import Page
 from ad_miner.sources.modules.grid_class import Grid
-from ad_miner.sources.modules.graph_class import Graph
 from ad_miner.sources.modules.utils import grid_data_stringify
-from ad_miner.sources.modules.common_analysis import presence_of
+from ad_miner.sources.modules.common_analysis import presence_of, createGraphPage
 
 from urllib.parse import quote
 
@@ -72,28 +71,27 @@ class can_read_gmsapassword_of_adm(Control):
         for d in data.values():
             sortClass = str(len(d["paths"])).zfill(6)
             tmp_grid_data = {
-                "domain": '<i class="bi bi-globe2"></i> ' + d["domain"],
-                "name": '<i class="bi bi-person-fill"></i> ' + d["name"],
+                "domain": '<i class="bi bi-globe2"></i>' + d["domain"],
+                "name": '<i class="bi bi-person-fill"></i>' + d["name"],
                 "target": grid_data_stringify(
                     {
                         "value": f"{len(d['paths'])} paths to {len(d['target'])} target{'s' if len(d['target'])>1 else ''}",
                         "link": f"can_read_gmsapassword_of_adm_from_{quote(str(d['name']))}.html",
-                        "before_link": f"<i class='{sortClass} bi bi-shuffle' aria-hidden='true'></i>",
+                        "before_link": f"<i class='{sortClass} bi bi-sign-turn-right' aria-hidden='true'></i>",
                     }
                 ),
             }
             grid_data.append(tmp_grid_data)
+
             # Build graph data
-            page_graph = Page(
+            createGraphPage(
                 self.arguments.cache_prefix,
                 f"can_read_gmsapassword_of_adm_from_{d['name']}",
                 f"{d['name']} can read GMSA Password attack paths on privileged accounts",
-                "can_read_gmsapassword_of_adm",
+                self.get_dico_description(),
+                d["paths"],
+                self.requests_results,
             )
-            graph = Graph()
-            graph.setPaths(d["paths"])
-            page_graph.addComponent(graph)
-            page_graph.render()
 
         self.can_read_gmsapassword_of_adm = data.keys()
         grid = Grid("Users that can read GMSA Password")

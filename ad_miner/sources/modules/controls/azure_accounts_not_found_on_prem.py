@@ -19,7 +19,7 @@ class azure_accounts_not_found_on_prem(Control):
 
         self.title = "Entra ID accounts not synced on-prem"
         self.description = (
-            "Azure accounts that are synced to an non-existing on premise account"
+            "ENtra ID accounts that are synced to an non-existing on premise account"
         )
         self.risk = "This anomaly may indicate a misconfiguration in the synchronization of accounts."
         self.poa = (
@@ -37,16 +37,16 @@ class azure_accounts_not_found_on_prem(Control):
         page = Page(
             self.arguments.cache_prefix,
             "azure_accounts_not_found_on_prem",
-            "Azure accounts that are synced to non-existing on premise account",
+            "Entra ID accounts that are synced to non-existing on premise account",
             self.get_dico_description(),
         )
-        grid = Grid("Azure accounts that are synced to non-existing on premise account")
+        grid = Grid("Entra ID accounts that are synced to non-existing on premise account")
 
         data = []
         for user in self.azure_accounts_not_found_on_prem:
             data.append(
                 {
-                    "Name": '<i class="bi bi-person-fill"></i> ' + user["Name"],
+                    "Name": '<i class="bi bi-person-fill"></i>' + user["Name"],
                     "Synced to on premise": '<i class="bi bi-check-square"></i>',
                     "Synced account": '<i class="bi bi-question-lg"></i>',
                 }

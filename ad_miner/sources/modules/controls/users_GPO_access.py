@@ -26,7 +26,7 @@ class users_GPO_access(Control):
 
         self.title = "Inadequate GPO modifications privileges"
         self.description = "GPOs that can be edited by unprivileged users."
-        self.risk = "If an AD object has rights over a GPO, it can potentially cause damage over all the objects affected by the GPO. GPOs can also be leveraged to gain privileges in the domain(s). If an attacker exploits one of these paths, they will be able to gain privileges in the domain(s) and cause some serious damage.<br/><br/><i class='bi bi-star-fill' style='color: red'></i><i class='bi bi-star-fill' style='color: red'></i><i class='bi bi-star-fill' style='color: red'></i> : Full domain or at least one domain admin as target.<br /><i class='bi bi-star-fill' style='color: orange'></i><i class='bi bi-star-fill' style='color: orange'></i><i class='bi bi-star' style='color: orange'></i> : At least one object admin of a computer.<br/><i class='bi bi-star-fill' style='color: green'></i><i class='bi bi-star' style='color: green'></i><i class='bi bi-star' style='color: green'></i> : At least one object as target.<br/><i class='bi bi-star' style='color: green'></i><i class='bi bi-star' style='color: green'></i><i class='bi bi-star' style='color: green'></i> : No direct target."
+        self.risk = "If an AD object has rights over a GPO, it can potentially cause damage over all the objects affected by the GPO. GPOs can also be leveraged to gain privileges in the domain(s). If an attacker exploits one of these paths, they will be able to gain privileges in the domain(s) and cause some serious damage.<br/><br/><i class='bi bi-star-fill' style='color: red'></i><i class='bi bi-star-fill' style='color: red'></i><i class='bi bi-star-fill' style='color: red'></i>: Full domain or at least one domain admin as target.<br /><i class='bi bi-star-fill' style='color: orange'></i><i class='bi bi-star-fill' style='color: orange'></i><i class='bi bi-star' style='color: orange'></i>: At least one object admin of a computer.<br/><i class='bi bi-star-fill' style='color: green'></i><i class='bi bi-star' style='color: green'></i><i class='bi bi-star' style='color: green'></i>: At least one object as target.<br/><i class='bi bi-star' style='color: green'></i><i class='bi bi-star' style='color: green'></i><i class='bi bi-star' style='color: green'></i>: No direct target."
         self.poa = "Review the paths, make sure they are not exploitable. If they are, cut the link between the Active Directory objects in order to reduce the attack surface."
 
         self.description_grid_GPO_access = {
@@ -166,7 +166,7 @@ class users_GPO_access(Control):
                 self.users_admin_computer_list.keys()
             )
             # self.computers_with_admin_rights = [
-            #     d["Computer Admin"].split("</i> ")[-1]
+            #     d["Computer Admin"].split("</i>")[-1]
             #     for d in self.computers_admin_data_grid
             # ]
             # Extract all users admin of computers
@@ -219,11 +219,10 @@ class users_GPO_access(Control):
 
                 output.append(
                     {
-                        headers[0]: '<i class="bi bi-journal-text"></i> '
-                        + dict[headers[0]],
+                        headers[0]: '<i class="bi bi-journal-text"></i>' + dict[headers[0]],
                         headers[
                             1
-                        ]: f'<i class="bi bi-shuffle {str(dict[headers[1]]).zfill(6)}"></i> '
+                        ]: f'<i class="bi bi-sign-turn-right {str(dict[headers[1]]).zfill(6)}"></i>'
                         + str(dict[headers[1]]),
                         headers[2]: {
                             "link": "users_GPO_access-%s-left-graph.html"
@@ -237,7 +236,7 @@ class users_GPO_access(Control):
                         },
                         headers[
                             4
-                        ]: f'<i class="bi bi-bullseye {str(len(list(set(dict["end_list"])))).zfill(6)}"></i> '
+                        ]: f'<i class="bi bi-bullseye {str(len(list(set(dict["end_list"])))).zfill(6)}"></i>'
                         + str(len(list(set(dict["end_list"])))),
                         headers[5]: icon,
                         headers[6]: {
@@ -258,13 +257,13 @@ class users_GPO_access(Control):
             output = []
             for n in list:
                 if n[1] == "Computer":
-                    icon = '<i class="bi bi-pc-display"></i> '
+                    icon = '<i class="bi bi-pc-display"></i>'
                 elif n[1] == "User":
-                    icon = '<i class="bi bi-person-fill"></i> '
+                    icon = '<i class="bi bi-person-fill"></i>'
                 elif n[1] == "Domain":
-                    icon = '<i class="bi bi-house-fill"></i> '
+                    icon = '<i class="bi bi-house-fill"></i>'
                 else:
-                    icon = '<i class="bi bi-question-circle-fill"></i> '
+                    icon = '<i class="bi bi-question-circle-fill"></i>'
 
                 if (
                     n[0] in self.computers_with_admin_rights
@@ -272,10 +271,10 @@ class users_GPO_access(Control):
                 ):
                     icon = (
                         icon
-                        + '<i class="bi bi-gem" title="This object has administration rights" style="color:grey;"></i> '
+                        + '<i class="bi bi-gem" title="This object has administration rights" style="color:grey;"></i>'
                     )
                 if n[0] in self.admin_list:
-                    icon = '<i class="bi bi-gem" title="This user is domain admin" style="color:deepskyblue;"></i> '
+                    icon = '<i class="bi bi-gem" title="This user is domain admin" style="color:deepskyblue;"></i>'
 
                 output.append({gpo_name: icon + n[0]})
             return output

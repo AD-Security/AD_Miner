@@ -19,7 +19,7 @@ class azure_cross_ga_da(Control):
         self.control_key = "azure_cross_ga_da"
 
         self.title = "Cross on-prem/Entra ID path to tier-0"
-        self.description = "Paths from Azure admins that leads to on premise admins compromission and vice-versa"
+        self.description = "Paths from Entra ID admins that leads to on premise admins compromission and vice-versa"
         self.risk = "With these paths, a attacker that would have compromised one environment can directly compromise the other one (either cloud or on premise)."
         self.poa = "Limit the existence of these paths by limiting the synchronization between administration accounts."
 
@@ -99,8 +99,8 @@ class azure_cross_ga_da(Control):
                     row1[self.tenant_id_name[tenant_id]] = grid_data_stringify(
                         {
                             "link": f"azure_cross_ga_da_{hash1}.html",
-                            "value": f"{count1} Azure ⇨ On-prem path{'s' if count1 > 1 else ''}",
-                            "before_link": f"<i class='bi bi-shuffle {sortClass1}' aria-hidden='true'></i>",
+                            "value": f"{count1} Entra ID ⇨ On-prem path{'s' if count1 > 1 else ''}",
+                            "before_link": f"<i class='bi bi-sign-turn-right {sortClass1}' aria-hidden='true'></i>",
                         }
                     )
                     createGraphPage(
@@ -120,8 +120,8 @@ class azure_cross_ga_da(Control):
                     row2[self.tenant_id_name[tenant_id]] = grid_data_stringify(
                         {
                             "link": f"azure_cross_ga_da_{hash2}.html",
-                            "value": f"{count2} On-prem ⇨ Azure path{'s' if count2 > 1 else ''}",
-                            "before_link": f"<i class='bi bi-shuffle {sortClass2}' aria-hidden='true'></i>",
+                            "value": f"{count2} On-prem ⇨ ENtra ID path{'s' if count2 > 1 else ''}",
+                            "before_link": f"<i class='bi bi-sign-turn-right {sortClass2}' aria-hidden='true'></i>",
                         }
                     )
                     createGraphPage(

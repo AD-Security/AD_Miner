@@ -39,12 +39,12 @@ class guest_accounts(Control):
 
         data = []
         for account_name, domain, is_enabled in guest_list:
-            tmp_data = {"domain": '<i class="bi bi-globe2"></i> ' + domain}
-            tmp_data["name"] = '<i class="bi bi-person-fill"></i> ' + account_name
+            tmp_data = {"domain": '<i class="bi bi-globe2"></i>' + domain}
+            tmp_data["name"] = '<i class="bi bi-person-fill"></i>' + account_name
             tmp_data["enabled"] = (
-                '<i class="bi bi-unlock-fill text-danger"></i> Enabled'
+                '<i class="bi bi-unlock-fill text-danger"></i>Enabled'
                 if is_enabled
-                else '<i class="bi bi-lock-fill text-success"></i> Disabled'
+                else '<i class="bi bi-lock-fill text-success"></i>Disabled'
             )
             data.append(tmp_data)
 

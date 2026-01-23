@@ -3,11 +3,10 @@ from ad_miner.sources.modules.controls import register_control
 from ad_miner.sources.modules.page_class import Page
 from ad_miner.sources.modules.grid_class import Grid
 from ad_miner.sources.modules import generic_formating, generic_computing
+from ad_miner.sources.modules.macro_graph_class import getKeyFromID
 
 from ad_miner.sources.modules.utils import grid_data_stringify
 from ad_miner.sources.modules.common_analysis import (
-    get_dico_admin_of_computer_id,
-    createGraphPage,
     get_interest,
 )
 
@@ -28,27 +27,19 @@ class my_control_class_name(Control):
 
         self.title = "ACL anomalies"
         self.description = "An ACL (Access Control List) is a security mechanism that defines permissions and access rights for objects within the Active Directory structure."
-        self.risk = "Misconfigured ACL can create access points or privilege escalation that an attacker could use to compromise the domain.<br /><br /><i class='bi bi-star-fill'></i><i class='bi bi-star-fill'></i><i class='bi bi-star-fill'></i> : At least one domain admin as target<br /><i class='bi bi-star-fill'></i><i class='bi bi-star-fill'></i><i class='bi bi-star'></i> : At least one object has a path to domain admin<br /><i class='bi bi-star-fill'></i><i class='bi bi-star'></i><i class='bi bi-star'></i> : At least one object admin of a computer<br /><i class='bi bi-star'></i><i class='bi bi-star'></i><i class='bi bi-star'></i> : Other"
+        self.risk = "Misconfigured ACL can create access points or privilege escalation that an attacker could use to compromise the domain.<br /><br /><i class='bi bi-star-fill'></i><i class='bi bi-star-fill'></i><i class='bi bi-star-fill'></i>: At least one domain admin as target<br /><i class='bi bi-star-fill'></i><i class='bi bi-star-fill'></i><i class='bi bi-star'></i>: At least one object has a path to domain admin<br /><i class='bi bi-star-fill'></i><i class='bi bi-star'></i><i class='bi bi-star'></i>: At least one object admin of a computer<br /><i class='bi bi-star'></i><i class='bi bi-star'></i><i class='bi bi-star'></i>: Other"
         self.poa = "Regularly review and clean up ACL entries for users and groups that no longer require them."
 
         self.anomaly_acl_1 = requests_results["anomaly_acl_1"]
         self.anomaly_acl_2 = requests_results["anomaly_acl_2"]
 
-        self.users_admin_on_computers = requests_results["users_admin_on_computers"]
+        self.users_admin_on_computers_count = requests_results["users_admin_on_computers_count"]
         self.dico_is_user_admin_on_computer = requests_results[
             "dico_is_user_admin_on_computer"
         ]
         self.dico_paths_computers_to_DA = requests_results["dico_paths_computers_to_DA"]
 
         self.admin_list = requests_results["admin_list"]
-
-        self.users_admin_computer_list = generic_computing.getListAdminTo(
-            self.users_admin_on_computers, "user", "computer"
-        )
-
-        self.dico_admin_of_computer_id = get_dico_admin_of_computer_id(
-            self.requests_results
-        )
 
         self.dico_users_to_da = requests_results["dico_users_to_da"]
         self.dico_computers_to_da = requests_results["dico_computers_to_da"]
@@ -110,7 +101,6 @@ class my_control_class_name(Control):
         formated_data_details = []
         formated_data = {}
         anomaly_acl_extract = []
-        graph_page_already_generated = {}
         self.max_interest = 0
 
         for k in range(len(self.anomaly_acl)):
@@ -118,7 +108,9 @@ class my_control_class_name(Control):
             label = generic_formating.clean_label(self.anomaly_acl[k]["LABELS(g)"])
 
             target_label = self.anomaly_acl[k]["labels(n)"]
-            target_label = filter(lambda x: x != "Base" and x != "AZBase", target_label)
+            target_label = filter(
+                lambda x: x != "Base" and x != "AZBase" and x != "Tag_Tier_Zero", target_label
+            )
             target_label = list(target_label)  # filter returning generator in python3
             target_label = target_label[0]
 
@@ -135,7 +127,11 @@ class my_control_class_name(Control):
                 and formated_data[name_label_instance]["label"] == label
             ):
                 formated_data[name_label_instance]["targets"].append(
-                    (self.anomaly_acl[k]["n.name"], target_label)
+                    (
+                        self.anomaly_acl[k]["n.name"],
+                        target_label,
+                        self.anomaly_acl[k]["ID(n)"],
+                    )
                 )
             elif (
                 formated_data.get(name_label_instance)
@@ -155,14 +151,20 @@ class my_control_class_name(Control):
                     "label": label,
                     "type": self.anomaly_acl[k]["type(r2)"],
                     "members_count": self.anomaly_acl[k]["g.members_count"],
-                    "targets": [(self.anomaly_acl[k]["n.name"], target_label)],
+                    "targets": [
+                        (
+                            self.anomaly_acl[k]["n.name"],
+                            target_label,
+                            self.anomaly_acl[k]["ID(n)"],
+                        )
+                    ],
                 }
         for name_label_instance in tqdm(formated_data):
             name_instance = formated_data[name_label_instance]["name"]
 
             formated_data_details = []
             interest = 0
-            for name, target_label in formated_data[name_label_instance]["targets"]:
+            for name, target_label, target_id in formated_data[name_label_instance]["targets"]:
                 interest = max(
                     get_interest(self.requests_results, target_label, name), interest
                 )
@@ -178,13 +180,13 @@ class my_control_class_name(Control):
                     else:
                         icon = "bi-person-fill"
                         tmp_dict["targets"] = (
-                            '<i class="bi bi-person-fill"></i> ' + name
+                            '<i class="bi bi-person-fill"></i>' + name
                         )
                     if name in self.dico_is_user_admin_on_computer:
-                        count = len(self.users_admin_computer_list[name])
+                        count = self.users_admin_on_computers_count[name]
                         tmp_dict["Computers admin"] = grid_data_stringify(
                             {
-                                "link": f"users_to_computers.html?node={self.dico_admin_of_computer_id[name]}",
+                                "link": f"users_admin_computers_{getKeyFromID(target_id)}.html?node={target_id}",
                                 "value": f"Admin of {count} computer{'s' if count > 1 else ''}",
                                 "before_link": f"<i class='bi bi-pc-display-horizontal {str(count).zfill(6)}'></i>",
                             }
@@ -259,29 +261,16 @@ class my_control_class_name(Control):
                         target_label,
                         "is unknown by anomaly_acl and will not be analyzed.",
                     )
-
-                if len(paths) > 0:
-                    teststring = target_label + name
+                count_path_to_DA = len(paths)
+                if count_path_to_DA > 0:
                     tmp_dict["Path to DA"] = grid_data_stringify(
                         {
-                            "link": f"object_to_domain_admin_from_{quote(str(teststring.replace(' ', '_')))}.html",
-                            "value": f'{len(paths)} path{"s" if len(paths) > 1 else ""} to Domain Admin',
-                            "before_link": f"<i class='<i bi bi-shuffle {str(len(paths)).zfill(6)}'></i> ",
+                            "link": f"object_to_domain_admin_{getKeyFromID(target_id)}.html?node={target_id}",
+                            "value": f'{count_path_to_DA} path{"s" if count_path_to_DA > 1 else ""} to Domain Admin',
+                            "before_link": f"<i class='<i bi bi-sign-turn-right-fill {str(count_path_to_DA).zfill(6)}' style='color:#b00404;'></i>",
                         }
                     )
-                    if teststring not in graph_page_already_generated:
-                        # avoid generating pages multiple time
-                        graph_page_already_generated[teststring] = True
-                        createGraphPage(
-                            self.arguments.cache_prefix,
-                            f"object_to_domain_admin_from_{teststring.replace(' ', '_')}",
-                            f"Paths to Domain Admin from {name}",
-                            self.get_dico_description(),
-                            paths,
-                            self.requests_results,
-                        )
-
-                tmp_dict["targets"] = f'<i class="bi {icon}"></i> {name}'
+                tmp_dict["targets"] = f'<i class="bi {icon}"></i>{name}'
                 formated_data_details.append(tmp_dict)
 
             page = Page(
@@ -310,7 +299,7 @@ class my_control_class_name(Control):
                     "label": f"{generic_formating.get_label_icon_dictionary()[formated_data[name_label_instance]['label']]} {formated_data[name_label_instance]['label']}",
                     "type": formated_data[name_label_instance]["type"],
                     "members count": (
-                        f'<i class="{str(formated_data[name_label_instance]["members_count"]).zfill(6)} bi bi-people-fill"></i> '
+                        f'<i class="{str(formated_data[name_label_instance]["members_count"]).zfill(6)} bi bi-people-fill"></i>'
                         + str(formated_data[name_label_instance]["members_count"])
                         if formated_data[name_label_instance]["members_count"] != "-"
                         else "-"
@@ -318,14 +307,13 @@ class my_control_class_name(Control):
                     "targets count": grid_data_stringify(
                         {
                             "link": f"anomaly_acl_details_{quote(str(name_label_instance.replace(' ', '_')))}.html",
-                            "value": f"{str(len(formated_data[name_label_instance]['targets'])) +' targets' if len(formated_data[name_label_instance]['targets']) > 1 else formated_data[name_label_instance]['targets'][0][0]}",
-                            "before_link": f"<i class='<i bi {icon} {str(len(formated_data[name_label_instance]['targets'])).zfill(6)}'></i> ",
+                            "value": f"{str(len(formated_data[name_label_instance]['targets'])) + ' targets' if len(formated_data[name_label_instance]['targets']) > 1 else formated_data[name_label_instance]['targets'][0][0]}",
+                            "before_link": f"<i class='<i bi {icon} {str(len(formated_data[name_label_instance]['targets'])).zfill(6)}'></i>",
                         }
                     ),
                     "interest": f"<span class='{interest}'></span><i class='bi bi-star-fill' style='color: {color}'></i>"
                     * interest
-                    + f"<i class='bi bi-star' style='color: {color}'></i>"
-                    * (3 - interest),
+                    + f"<i class='bi bi-star' style='color: {color}'></i>" * (3 - interest),
                 }
             )
             self.max_interest = max(interest, self.max_interest)

@@ -35,7 +35,7 @@ class empty_groups(Control):
         headers = ["Empty group", "Full Reference"]
 
         for d in self.empty_groups:
-            d["Empty group"] = '<i class="bi bi-people-fill"></i> ' + d["Empty group"]
+            d["Empty group"] = '<i class="bi bi-people-fill"></i>' + d["Empty group"]
 
         grid.setheaders(headers)
         grid.setData(self.empty_groups)

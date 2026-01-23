@@ -56,8 +56,8 @@ class up_to_date_admincount(Control):
         for dic in self.users_nb_domain_admins:
             if dic["admincount"]:
                 continue
-            tmp_data = {"domain": '<i class="bi bi-globe2"></i> ' + dic["domain"]}
-            tmp_data["name"] = '<i class="bi bi-gem"></i> ' + dic["name"]
+            tmp_data = {"domain": '<i class="bi bi-globe2"></i>' + dic["domain"]}
+            tmp_data["name"] = '<i class="bi bi-gem"></i>' + dic["name"]
             tmp_data["domain admin"] = (
                 '<i class="bi bi-check-square-fill"></i><span style="display:none">True</span>'
                 if "Domain Admin" in dic["admin type"]
@@ -89,13 +89,13 @@ class up_to_date_admincount(Control):
                 else '<i class="bi bi-square"></i>'
             )
             tmp_data["admincount"] = (
-                '<i class="bi bi-square" style="color: red;"></i> Missing admincount'
+                '<i class="bi bi-square" style="color: red;"></i>Missing admincount'
             )
             data.append(tmp_data)
 
         for name, domain, da_type in self.unpriviledged_users_with_admincount:
-            tmp_data = {"domain": '<i class="bi bi-globe2"></i> ' + domain}
-            tmp_data["name"] = '<i class="bi bi-person-fill"></i> ' + name
+            tmp_data = {"domain": '<i class="bi bi-globe2"></i>' + domain}
+            tmp_data["name"] = '<i class="bi bi-person-fill"></i>' + name
             tmp_data["domain admin"] = '<i class="bi bi-square"></i>'
             tmp_data["schema admin"] = '<i class="bi bi-square"></i>'
             tmp_data["enterprise admin"] = '<i class="bi bi-square"></i>'
@@ -103,7 +103,7 @@ class up_to_date_admincount(Control):
             tmp_data["enterprise key admin"] = '<i class="bi bi-square"></i>'
             tmp_data["builtin admin"] = '<i class="bi bi-square"></i>'
             tmp_data["admincount"] = (
-                '<i class="bi bi-check-square-fill" style="color: red;"></i> Misleading admincount<span style="display:none">True</span>'
+                '<i class="bi bi-check-square-fill" style="color: red;"></i>Misleading admincount<span style="display:none">True</span>'
             )
             data.append(tmp_data)
 

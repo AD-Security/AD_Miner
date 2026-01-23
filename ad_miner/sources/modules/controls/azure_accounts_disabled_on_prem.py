@@ -19,9 +19,9 @@ class azure_accounts_disabled_on_prem(Control):  # TODO change the class name
 
         self.title = "Synced accounts with disabled twin account"
         self.description = (
-            "Synced Azure accounts with different enabled status as the on premise one"
+            "Synced Entra ID accounts with different enabled status as the on premise one"
         )
-        self.risk = "This anomaly probably means that unused accounts are still enabled on the Azure or on premise environment. An account which has not been used for a long time but is still enabled may be used by attackers as they keep their privilege."
+        self.risk = "This anomaly probably means that unused accounts are still enabled on the Entra ID or on premise environment. An account which has not been used for a long time but is still enabled may be used by attackers as they keep their privilege."
         self.poa = "Ensure that these accounts should still be enabled."
 
         self.azure_accounts_disabled_on_prem = requests_results[
@@ -35,23 +35,23 @@ class azure_accounts_disabled_on_prem(Control):  # TODO change the class name
         page = Page(
             self.arguments.cache_prefix,
             "azure_accounts_disabled_on_prem",
-            "Synced Azure accounts with different enabled status",
+            "Synced Entra ID accounts with different enabled status",
             self.get_dico_description(),
         )
-        grid = Grid("Synced Azure accounts with different enabled status")
+        grid = Grid("Synced Entra ID accounts with different enabled status")
 
         data = []
         for user in self.azure_accounts_disabled_on_prem:
             data.append(
                 {
-                    "Azure name": '<i class="bi bi-person-fill"></i> '
+                    "Entra ID name": '<i class="bi bi-person-fill"></i>'
                     + user["Azure name"],
-                    "Enabled on Azure": (
+                    "Enabled on Entra ID": (
                         '<i class="bi bi-check-square"></i>'
                         if user["Enabled on Azure"] is True
                         else '<i class="bi bi-square"></i>'
                     ),
-                    "On premise name": '<i class="bi bi-person"></i> '
+                    "On premise name": '<i class="bi bi-person"></i>'
                     + user["On premise name"],
                     "Enabled on premise": (
                         '<i class="bi bi-check-square"></i>'
@@ -62,7 +62,7 @@ class azure_accounts_disabled_on_prem(Control):  # TODO change the class name
             )
 
         grid.setheaders(
-            ["Azure name", "Enabled on Azure", "On premise name", "Enabled on premise"]
+            ["Entra ID name", "Enabled on Entra ID", "On premise name", "Enabled on premise"]
         )
 
         grid.setData(data)
@@ -70,7 +70,7 @@ class azure_accounts_disabled_on_prem(Control):  # TODO change the class name
         page.render()
 
         self.data = len(self.azure_accounts_disabled_on_prem)
-        self.name_description = f"{len(self.azure_accounts_disabled_on_prem)} Azure accounts are disabled on prem."
+        self.name_description = f"{len(self.azure_accounts_disabled_on_prem)} Entra ID accounts are disabled on prem."
 
     def get_rating(self) -> int:
         return presence_of(self.azure_accounts_disabled_on_prem, 3)

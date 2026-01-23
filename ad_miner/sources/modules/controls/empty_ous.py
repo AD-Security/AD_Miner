@@ -36,7 +36,7 @@ class empty_ous(Control):  # TODO change the class name
 
         for d in self.empty_ous:
             d["Empty Organizational Unit"] = (
-                '<i class="bi bi-building"></i> ' + d["Empty Organizational Unit"]
+                '<i class="bi bi-building"></i>' + d["Empty Organizational Unit"]
             )
 
         grid.setheaders(headers)

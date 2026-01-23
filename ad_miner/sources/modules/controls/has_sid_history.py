@@ -55,13 +55,13 @@ class has_sid_history(Control):
                 if row["Has SID History"] == name_user:
                     origin_count = len(self.users_admin_computer_list[name_user])
                     row["Admin of"] = (
-                        f"<i class='bi bi-pc-display-horizontal 000003'></i> <a style='color: blue' target='_blank' href='users_admin_of_computers_details.html?parameter={quote(name_user)}'> {origin_count} computer{'s' if origin_count > 0 else ''} </a>"
+                        f"<i class='bi bi-pc-display-horizontal 000003'></i><a style='color: blue' target='_blank' href='users_admin_of_computers_details.html?parameter={quote(name_user)}'> {origin_count} computer{'s' if origin_count > 0 else ''} </a>"
                     )
 
                 if row["Target"] == name_user:
                     target_count = len(self.users_admin_computer_list[name_user])
                     row["admin of"] = (
-                        f"<i class='bi bi-pc-display-horizontal 000003'></i> <a style='color: blue' target='_blank' href='users_admin_of_computers_details.html?parameter={quote(name_user)}'> {target_count} computer{'s' if target_count > 0 else ''} </a>"
+                        f"<i class='bi bi-pc-display-horizontal 000003'></i><a style='color: blue' target='_blank' href='users_admin_of_computers_details.html?parameter={quote(name_user)}'> {target_count} computer{'s' if target_count > 0 else ''} </a>"
                     )
 
             # add user icons

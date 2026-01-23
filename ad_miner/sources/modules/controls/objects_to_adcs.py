@@ -56,8 +56,10 @@ class objects_to_adcs(Control):
 
         self.ADCS_path_sorted = {}
         self.ADCS_entry_point = []
+        self.unique_starting_points = {}
 
         for path in self.objects_to_adcs:
+            self.unique_starting_points[path.nodes[0].id] = True
             self.ADCS_entry_point.append(path.nodes[0].name)
             try:
                 self.ADCS_path_sorted[path.nodes[-1].name].append(path)
@@ -71,9 +73,9 @@ class objects_to_adcs(Control):
         for key, paths in self.ADCS_path_sorted.items():
             tmp_data = {}
             tmp_data["Domain"] = (
-                '<i class="bi bi-globe2"></i> ' + paths[0].nodes[-1].domain
+                '<i class="bi bi-globe2"></i>' + paths[0].nodes[-1].domain
             )
-            tmp_data["Name"] = '<i class="bi bi-server"></i> ' + key
+            tmp_data["Name"] = '<i class="bi bi-server"></i>' + key
             nb_path_to_adcs = len(paths)
             self.total_paths += nb_path_to_adcs
             sortClass = str(nb_path_to_adcs).zfill(6)
@@ -81,7 +83,7 @@ class objects_to_adcs(Control):
                 {
                     "link": "path_to_adcs_%s.html" % quote(str(key)),
                     "value": f"{nb_path_to_adcs} paths to ADCS",
-                    "before_link": f"<i class='bi bi-shuffle {sortClass}' aria-hidden='true'></i>",
+                    "before_link": f"<i class='bi bi-sign-turn-right-fill {sortClass}' style='color:#b00404;' aria-hidden='true'></i>",
                 }
             )
             cleaned_data.append(tmp_data)
@@ -101,10 +103,10 @@ class objects_to_adcs(Control):
         page.addComponent(grid)
         page.render()
 
-        self.data = self.total_paths
+        self.data = len(self.unique_starting_points.keys())
 
         self.name_description = (
-            f"{self.data} non-tier-0 with local admin privileges on ADCS"
+            f"{self.data} non-tier-$0$ with local admin privileges on ADCS"
         )
 
     def get_rating(self) -> int:

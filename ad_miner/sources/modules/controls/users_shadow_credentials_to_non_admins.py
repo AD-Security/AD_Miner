@@ -53,14 +53,13 @@ class TestControle1(Control):
             sortClass = str(nb_paths).zfill(6)
             grid_data.append(
                 {
-                    "domain": '<i class="bi bi-globe2"></i> ' + data[target]["domain"],
-                    "target": '<i class="bi bi-bullseye"></i> '
-                    + data[target]["target"],
+                    "domain": '<i class="bi bi-globe2"></i>' + data[target]["domain"],
+                    "target": '<i class="bi bi-bullseye"></i>' + data[target]["target"],
                     "paths": grid_data_stringify(
                         {
                             "value": f"{nb_paths} paths to target",
                             "link": f"users_shadow_credentials_to_non_admins_to_{quote(str(data[target]['target']))}.html",
-                            "before_link": f"<i class='bi bi-shuffle {sortClass}' aria-hidden='true'></i>",
+                            "before_link": f"<i class='bi bi-sign-turn-right {sortClass}' aria-hidden='true'></i>",
                         }
                     ),
                 }

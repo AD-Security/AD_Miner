@@ -5,7 +5,7 @@ from ad_miner.sources.modules.page_class import Page
 from ad_miner.sources.modules.grid_class import Grid
 from ad_miner.sources.modules.graph_class import Graph
 from ad_miner.sources.modules.utils import grid_data_stringify
-from ad_miner.sources.modules.common_analysis import presence_of
+from ad_miner.sources.modules.common_analysis import presence_of, createGraphPage
 
 from urllib.parse import quote
 
@@ -67,22 +67,20 @@ class can_dcsync(Control):
         data = []
         for n in self.can_dcsync_nodes:
             # Graph path to DCSync
-            page = Page(
-                self.arguments.cache_prefix,
-                f"path_to_{n.name}_with_dcsync",
-                f"DCsync path for {n.name}",
-                self.dico_name_description_can_dcsync_graph,
-            )
-            graph = Graph()
 
             paths_left = []
             for path in self.objects_to_dcsync:
                 if path.nodes[-1].name == n.name:
                     paths_left.append(path)
 
-            graph.setPaths(paths_left)
-            page.addComponent(graph)
-            page.render()
+            createGraphPage(
+                self.arguments.cache_prefix,
+                f"path_to_{n.name}_with_dcsync",
+                f"DCsync path for {n.name}",
+                self.dico_name_description_can_dcsync_graph,
+                paths_left,
+                self.requests_results,
+            )
 
             # Graph DCSync detail
             page = Page(
@@ -117,21 +115,21 @@ class can_dcsync(Control):
             sortClass = str(len(paths_left)).zfill(6)
             data.append(
                 {
-                    "domain": '<i class="bi bi-globe2"></i> ' + n.domain,
+                    "domain": '<i class="bi bi-globe2"></i>' + n.domain,
                     "type": type_icon + " " + n.labels,
                     "name": name_icon + " " + n.name,
                     "path to account": grid_data_stringify(
                         {
                             "link": "path_to_%s_with_dcsync.html" % quote(str(n.name)),
                             "value": f"{len(paths_left)} paths",
-                            "before_link": f"<i class='bi bi-shuffle {sortClass}' aria-hidden='true'></i>",
+                            "before_link": f"<i class='bi bi-sign-turn-right {sortClass}' aria-hidden='true'></i>",
                         }
                     ),
                     "path to dcsync": grid_data_stringify(
                         {
                             "link": "dcsync_from_%s.html" % quote(str(n.name)),
                             "value": f"DCSync path",
-                            "before_link": f"<i class='bi bi-shuffle {sortClass}' aria-hidden='true'></i>",
+                            "before_link": f"<i class='bi bi-sign-turn-right {sortClass}' aria-hidden='true'></i>",
                         }
                     ),
                 }
@@ -193,7 +191,7 @@ class can_dcsync(Control):
             ] = f"can_dcsync_from_{quote(str(raw_data[k]['name']))}.html"
             raw_data[k]["target graph"][
                 "value"
-            ] = f"<i class='bi bi-shuffle {sortClass}' aria-hidden='true'></i> View paths ({len(raw_data[k]['paths'])})"
+            ] = f"<i class='bi bi-sign-turn-right {sortClass}' aria-hidden='true'></i>View paths ({len(raw_data[k]['paths'])})"
             data.append(
                 {
                     "domain": raw_data[k]["domain"],

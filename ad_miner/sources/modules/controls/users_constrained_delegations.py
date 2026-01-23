@@ -75,13 +75,6 @@ class users_constrained_delegations(Control):
         req = self.users_constrained_delegations
         if req is None:
             return -1
-        for object in req:
-            if type(object) == str:
-                return -1
-            if object["to_DC"] == True:
-                return 2
-
         if len(req) > 0:
             return 3
-
         return 5

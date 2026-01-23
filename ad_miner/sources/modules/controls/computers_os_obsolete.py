@@ -41,31 +41,33 @@ class computers_os_obsolete(Control):
         for computer in self.list_computers_os_obsolete:
             if computer["Last logon in days"] < 90:  # remove ghost computers
                 computer["Domain"] = (
-                    '<i class="bi bi-globe2"></i> ' + computer["Domain"]
+                    '<i class="bi bi-globe2"></i>' + computer["Domain"]
                 )
                 computer["Last logon"] = days_format(computer["Last logon in days"])
                 if (
                     "2008" in computer["Operating system"]
                     or "2003" in computer["Operating system"]
                     or "2012" in computer["Operating system"]
+                    or "WINDOWS EMBEDDED STANDARD SERVICE PACK 1" in computer["Operating system"].upper()
                 ):  # Add icons whether it's a computer or a server
                     computer["Operating system"] = (
-                        '<i class="bi bi-server"></i> ' + computer["Operating system"]
+                        '<i class="bi bi-server"></i>' + computer["Operating system"]
                     )
                     computer["name"] = (
-                        '<i class="bi bi-server"></i> ' + computer["name"]
+                        '<i class="bi bi-server"></i>' + computer["name"]
                     )
                 if (
                     "2000" in computer["Operating system"]
-                    or "XP" in computer["Operating system"]
-                    or "Windows 7" in computer["Operating system"]
+                    or "XP" in computer["Operating system"].upper()
+                    or "WINDOWS 7" in computer["Operating system"].upper()
+                    or "VISTA" in computer["Operating system"].upper()
                 ):
                     computer["Operating system"] = (
-                        '<i class="bi bi-pc-display"></i> '
+                        '<i class="bi bi-pc-display"></i>'
                         + computer["Operating system"]
                     )
                     computer["name"] = (
-                        '<i class="bi bi-pc-display"></i> ' + computer["name"]
+                        '<i class="bi bi-pc-display"></i>' + computer["name"]
                     )
 
                 cleaned_data.append(computer)

@@ -31,18 +31,7 @@ class computers_without_laps(Control):
             return
 
         if len(self.list_total_computers) != 0:
-            stat_LAPS = round(
-                100
-                * len(
-                    [
-                        computer_has_laps
-                        for computer_has_laps in self.computers_nb_has_laps
-                        if "ENABLED" in computer_has_laps["LAPS"].upper()
-                        or "TRUE" in computer_has_laps["LAPS"].upper()
-                    ]
-                )
-                / (len(self.computers_nb_has_laps) + 0.001)
-            )
+            stat_LAPS = round(100 * len([computer_has_laps for computer_has_laps in self.computers_nb_has_laps if "ENABLED" in computer_has_laps["LAPS"].upper() or "TRUE" in computer_has_laps["LAPS"].upper()]) / (len(self.computers_nb_has_laps) + 0.001))
 
         else:
             stat_LAPS = 0
@@ -61,25 +50,17 @@ class computers_without_laps(Control):
         for computer in self.computers_nb_has_laps:
             tmp_dict = {}
             # If value is None
-            if not computer.get("lastLogon"):
+            if not "lastLogon" in computer.keys():
                 continue
             # Exclude ghost computers (last logon > 90 days)
             if computer["lastLogon"] < 90:
-                tmp_dict["domain"] = (
-                    '<i class="bi bi-globe2"></i> ' + computer["domain"]
-                )
+                tmp_dict["domain"] = '<i class="bi bi-globe2"></i>' + computer["domain"]
                 tmp_dict["Last logon"] = days_format(computer["lastLogon"])
-                tmp_dict["name"] = (
-                    '<i class="bi bi-pc-display"></i> ' + computer["name"]
-                )
+                tmp_dict["name"] = '<i class="bi bi-pc-display"></i>' + computer["name"]
                 if computer["LAPS"] == "false":
-                    tmp_dict["LAPS"] = (
-                        '<i class="bi bi-unlock-fill text-danger"></i> Disabled'
-                    )
+                    tmp_dict["LAPS"] = '<i class="bi bi-unlock-fill text-danger"></i>Disabled'
                 else:
-                    tmp_dict["LAPS"] = (
-                        '<i class="bi bi-lock-fill text-success"></i> Enabled'
-                    )
+                    tmp_dict["LAPS"] = '<i class="bi bi-lock-fill text-success"></i>Enabled'
                 cleaned_data.append(tmp_dict)
         self.computers_nb_has_laps = cleaned_data
         grid.setData(cleaned_data)

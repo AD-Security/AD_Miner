@@ -48,10 +48,10 @@ class users_rdp_access(Control):
         for key in self.users_rdp_access_1:
             sortClass = str(len(self.users_rdp_access_1[key])).zfill(6)
             d = {
-                "Users": '<i class="bi bi-person-fill"></i> ' + key,
+                "Users": '<i class="bi bi-person-fill"></i>' + key,
                 "Computers": grid_data_stringify(
                     {
-                        "value": f"{len(self.users_rdp_access_1[key])} Computers <p style='visibility:hidden;'>{self.users_rdp_access_1[key]}</p>",
+                        "value": f"{len(self.users_rdp_access_1[key])} Computers <p style='display: none;'>{self.users_rdp_access_1[key]}</p>",
                         "link": f"users_rdp_access.html?parameter={quote(str(key))}",
                         "before_link": f'<i class="bi bi-pc-display {sortClass}"></i>',
                     }

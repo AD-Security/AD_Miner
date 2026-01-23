@@ -17,9 +17,9 @@ class azure_admin_on_prem(Control):
         self.category = "az_permissions"
         self.control_key = "azure_admin_on_prem"
 
-        self.title = "Privileged accounts on both on-prem and AZ"
+        self.title = "Privileged accounts on both on-prem and Entra ID"
         self.description = (
-            "All accounts that are privileged both on Azure and on premise"
+            "All accounts that are privileged both on Entra ID and on premise"
         )
         self.risk = "Admin accounts should not be shared between cloud and on premise environments, as it means that the compromission of one leads to the compromission of the other one."
         self.poa = "Review these privileged accounts and opt into differents admin accounts for cloud and on premise environments"
@@ -33,14 +33,14 @@ class azure_admin_on_prem(Control):
         page = Page(
             self.arguments.cache_prefix,
             "azure_admin_on_prem",
-            "Azure & On premise Admins",
+            "Entra ID & On premise Admins",
             self.get_dico_description(),
         )
-        grid = Grid("Azure & On premise Admins")
+        grid = Grid("Entra ID & On premise Admins")
 
         data = []
         for user in self.azure_admin_on_prem:
-            data.append({"Name": '<i class="bi bi-gem"></i> ' + user["Name"]})
+            data.append({"Name": '<i class="bi bi-gem"></i>' + user["Name"]})
 
         grid.setheaders(["Name"])
 
@@ -50,7 +50,7 @@ class azure_admin_on_prem(Control):
 
         self.data = len(self.azure_admin_on_prem)
         self.name_description = (
-            f"{len(self.azure_admin_on_prem)} admins on Azure and on premise"
+            f"{len(self.azure_admin_on_prem)} admins on Entra ID and on premise"
         )
 
     def get_rating(self) -> int:

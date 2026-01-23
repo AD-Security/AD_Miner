@@ -57,7 +57,7 @@ class da_to_da(Control):
             headers.append(domain)
             graphDatas[domain] = {}
             pathLengthss.append(
-                {"FROM / TO": '<i class="bi bi-globe2"></i> ' + domain, domain: "-"}
+                {"FROM / TO": '<i class="bi bi-globe2"></i>' + domain, domain: "-"}
             )
         for path in paths:
             # headers and pathLengths share the same index and it is cheaper to use headers here
@@ -70,7 +70,7 @@ class da_to_da(Control):
                 graphDatas[unknown_domain] = {}
                 pathLengthss.append(
                     {
-                        "FROM / TO": '<i class="bi bi-globe2"></i> ' + unknown_domain,
+                        "FROM / TO": '<i class="bi bi-globe2"></i>' + unknown_domain,
                         unknown_domain: "-",
                     }
                 )
@@ -129,7 +129,7 @@ class da_to_da(Control):
                     ] = f"{row[key]['value']} path{'s' if row[key]['value'] > 1 else ''}"
                     row[key][
                         "before_link"
-                    ] = f"<i class='bi bi-shuffle {sortClass}' aria-hidden='true'></i>"
+                    ] = f"<i class='bi bi-sign-turn-right-fill {sortClass}' style='color:#b00404;' aria-hidden='true'></i>"
                     row[key] = grid_data_stringify(row[key])
             # Add some text to empty cells
             for header in headers:

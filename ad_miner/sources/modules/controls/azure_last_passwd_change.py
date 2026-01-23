@@ -20,9 +20,9 @@ class azure_last_passwd_change(Control):
 
         self.title = "Incoherent last password change"
         self.description = (
-            "Users whose password change date is different between Azure and on premise"
+            "Users whose password change date is different between Entra ID and on premise"
         )
-        self.risk = "A difference between the timestamps of the last password change between Azure and on premise environment could mean that a synchronization did not occur and could lead to an exposed account on one of the environment"
+        self.risk = "A difference between the timestamps of the last password change between Entra ID and on premise environment could mean that a synchronization did not occur and could lead to an exposed account on one of the environment"
         self.poa = "Check if the desynchronization is normal."
 
         self.azure_last_passwd_change = requests_results["azure_last_passwd_change"]
@@ -34,10 +34,10 @@ class azure_last_passwd_change(Control):
         page = Page(
             self.arguments.cache_prefix,
             "azure_last_passwd_change",
-            "Incoherent last password change both on Azure and on premise",
+            "Incoherent last password change both on Entra ID and on premise",
             self.get_dico_description(),
         )
-        grid = Grid("Incoherent last password change both on Azure and on premise")
+        grid = Grid("Incoherent last password change both on Entra ID and on premise")
 
         data = []
         self.azure_last_passwd_change_strange = []
@@ -49,9 +49,9 @@ class azure_last_passwd_change(Control):
                 self.azure_last_passwd_change_strange.append(user)
                 data.append(
                     {
-                        "Name": '<i class="bi bi-person-fill"></i> ' + user["Name"],
+                        "Name": '<i class="bi bi-person-fill"></i>' + user["Name"],
                         "Last password set on premise": days_format(onprem),
-                        "Last password set on Azure": days_format(onazure),
+                        "Last password set on Entra ID": days_format(onazure),
                         "Difference": days_format(diff),
                     }
                 )
@@ -60,7 +60,7 @@ class azure_last_passwd_change(Control):
             [
                 "Name",
                 "Last password set on premise",
-                "Last password set on Azure",
+                "Last password set on Entra ID",
                 "Difference",
             ]
         )

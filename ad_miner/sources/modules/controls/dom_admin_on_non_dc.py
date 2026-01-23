@@ -57,14 +57,14 @@ class dom_admin_on_non_dc(Control):
         data = []
         for da in dico.keys():
             tmp = {}
-            tmp["Domain"] = '<i class="bi bi-globe2"></i> ' + dico[da]["domain"]
-            tmp["Domain Admin"] = '<i class="bi bi-gem"></i> ' + da
+            tmp["Domain"] = '<i class="bi bi-globe2"></i>' + dico[da]["domain"]
+            tmp["Domain Admin"] = '<i class="bi bi-gem"></i>' + da
             nb_computers = len(dico[da]["computers"])
             tmp["Computers"] = grid_data_stringify(
                 {
                     "link": f"dom_admin_on_non_dc_list_of_{quote(str(da.replace(' ', '_')))}.html",
                     "value": f'{nb_computers} computer{"s" if  nb_computers > 1 else ""} impacted',
-                    "before_link": f"<i class='<i bi bi-pc-display-horizontal {str(nb_computers).zfill(6)}'></i> ",
+                    "before_link": f"<i class='<i bi bi-pc-display-horizontal {str(nb_computers).zfill(6)}'></i>",
                 }
             )
             nb_domains = len(dico[da]["domains_impacted"].keys())
@@ -72,7 +72,7 @@ class dom_admin_on_non_dc(Control):
                 {
                     "link": f"dom_admin_on_non_dc_domain_list_of_{quote(str(da.replace(' ', '_')))}.html",
                     "value": f'{nb_domains} domain{"s" if nb_domains > 1 else ""} impacted',
-                    "before_link": f"<i class='<i bi bi-globe2 {str(nb_domains).zfill(6)}'></i> ",
+                    "before_link": f"<i class='<i bi bi-globe2 {str(nb_domains).zfill(6)}'></i>",
                 }
             )
             nb_paths = len(dico[da]["paths"])
@@ -80,7 +80,7 @@ class dom_admin_on_non_dc(Control):
                 {
                     "link": f"dom_admin_on_non_dc_paths_from_{quote(str(da.replace(' ', '_')))}.html",
                     "value": f'{nb_paths} path{"s" if  nb_paths > 1 else ""}',
-                    "before_link": f"<i class='<i bi bi-shuffle {str(nb_paths).zfill(6)}'></i> ",
+                    "before_link": f"<i class='<i bi bi-sign-turn-right {str(nb_paths).zfill(6)}'></i>",
                 }
             )
             data.append(tmp)
@@ -103,7 +103,7 @@ class dom_admin_on_non_dc(Control):
             )
             computer_list_grid.setheaders(["Computer"])
             computer_list_data = [
-                {"Computer": '<i class="bi bi-pc-display-horizontal"></i> ' + c}
+                {"Computer": '<i class="bi bi-pc-display-horizontal"></i>' + c}
                 for c in dico[da]["computers"]
             ]
             computer_list_grid.setData(computer_list_data)
@@ -121,9 +121,7 @@ class dom_admin_on_non_dc(Control):
                 f"Domains of computers storing sensitive connection informations of {da}"
             )
             domain_list_grid.setheaders(["Domain"])
-            domain_list_data = [
-                {"Domain": '<i class="bi bi-globe2"></i> ' + c} for c in domain_list
-            ]
+            domain_list_data = [{"Domain": '<i class="bi bi-globe2"></i>' + c} for c in domain_list]
             domain_list_grid.setData(domain_list_data)
             domain_list_page.addComponent(domain_list_grid)
             domain_list_page.render()
@@ -137,7 +135,9 @@ class dom_admin_on_non_dc(Control):
             else 0
         )
 
-        self.name_description = f"{self.data} Tier-0 sessions on non-Tier-0 computers"
+        self.name_description = (
+            f"{self.data} Tier-$0$ sessions on non-Tier-$0$ computers"
+        )
 
     def get_rating(self) -> int:
         return presence_of(self.users_domain_admin_on_nondc)

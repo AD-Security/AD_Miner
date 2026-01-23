@@ -130,10 +130,9 @@ class graph_list_objects_rbcd(Control):  # TODO change the class name
                     ).zfill(6)
                     sub_tmp_data["Paths to DA"] = grid_data_stringify(
                         {
-                            "value": f'{len(self.rbcd_to_da_graphs[destination]["paths"])} path{"s" if len(self.rbcd_to_da_graphs[destination]["paths"]) > 1 else ""} to <i class="bi bi-gem"></i> DA',
-                            "link": "rbcd_target_%s_paths_to_da.html"
-                            % quote(str(destination)),
-                            "before_link": f'<i class="bi bi-shuffle {sortClass}"></i>',
+                            "value": f'{len(self.rbcd_to_da_graphs[destination]["paths"])} path{"s" if len(self.rbcd_to_da_graphs[destination]["paths"]) > 1 else ""} to DA <i class="bi bi-gem"></i>',
+                            "link": "rbcd_target_%s_paths_to_da.html" % quote(str(destination)),
+                            "before_link": f'<i class="bi bi-sign-turn-right {sortClass}" style="color:#b00404;""></i>',
                         }
                     )
                 else:
@@ -160,16 +159,16 @@ class graph_list_objects_rbcd(Control):  # TODO change the class name
             for object_name in list(self.rbcd_graphs.keys()):
                 tmp_data = {}
                 tmp_data["Domain"] = (
-                    '<i class="bi bi-globe2"></i> '
+                    '<i class="bi bi-globe2"></i>'
                     + self.rbcd_graphs[object_name]["domain"]
                 )
-                tmp_data["Name"] = '<i class="bi bi-person-fill"></i> ' + object_name
+                tmp_data["Name"] = '<i class="bi bi-person-fill"></i>' + object_name
                 sortClass1 = str(len(self.rbcd_graphs[object_name]["paths"])).zfill(6)
                 tmp_data["Paths to targets"] = grid_data_stringify(
                     {
-                        "value": f'{len(self.rbcd_graphs[object_name]["paths"])} path{"s" if len(self.rbcd_graphs[object_name]["paths"]) > 1 else ""} to <i class="bi bi-bullseye"></i> targets',
+                        "value": f'{len(self.rbcd_graphs[object_name]["paths"])} path{"s" if len(self.rbcd_graphs[object_name]["paths"]) > 1 else ""} to targets <i class="bi bi-bullseye"></i>',
                         "link": "%s_rbcd_graph.html" % quote(str(object_name)),
-                        "before_link": f'<i class="bi bi-shuffle {sortClass1}"></i>',
+                        "before_link": f'<i class="bi bi-sign-turn-right {sortClass1}"></i>',
                     }
                 )
                 if self.rbcd_graphs[object_name]["nb_paths_to_da"] > 0:
@@ -178,10 +177,10 @@ class graph_list_objects_rbcd(Control):  # TODO change the class name
                     ).zfill(6)
                     tmp_data["Paths to DA"] = grid_data_stringify(
                         {
-                            "value": f'{self.rbcd_graphs[object_name]["nb_paths_to_da"]} path{"s" if self.rbcd_graphs[object_name]["nb_paths_to_da"] > 1 else ""} to <i class="bi bi-gem"></i> DA',
+                            "value": f'{self.rbcd_graphs[object_name]["nb_paths_to_da"]} path{"s" if self.rbcd_graphs[object_name]["nb_paths_to_da"] > 1 else ""} to DA <i class="bi bi-gem"></i>',
                             "link": "graph_list_objects_rbcd_to_da_from_%s.html"
                             % quote(str(object_name)),
-                            "before_link": f'<i class="bi bi-shuffle {sortClass2}"></i>',
+                            "before_link": f'<i class="bi bi-sign-turn-right-fill {sortClass2}" style="color:#b00404;"></i>',
                         }
                     )
                 else:

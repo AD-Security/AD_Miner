@@ -21,9 +21,9 @@ class azure_roles(Control):  # TODO change the class name
         self.control_key = "azure_roles"
 
         self.title = "Access to privileged Entra ID roles"
-        self.description = "Paths to all builtin and custom Azure roles"
-        self.risk = "Azure roles usually grant privileges on the tenant, it is therefore important to ensure that all accounts with privileged roles are justified to have so."
-        self.poa = "Review all the Azure roles and the users that have them."
+        self.description = "Paths to all builtin and custom Entra ID roles"
+        self.risk = "Entra ID roles usually grant privileges on the tenant, it is therefore important to ensure that all accounts with privileged roles are justified to have so."
+        self.poa = "Review all the Entra ID roles and the users that have them."
 
         self.azure_role_listing = requests_results["azure_role_listing"]
         self.azure_role_paths = requests_results["azure_role_paths"]
@@ -43,10 +43,10 @@ class azure_roles(Control):  # TODO change the class name
         page = Page(
             self.arguments.cache_prefix,
             "azure_roles",
-            "Azure roles",
+            "Entra ID roles",
             self.get_dico_description(),
         )
-        grid = Grid("Azure roles")
+        grid = Grid("Entra ID roles")
 
         data = []
         self.azure_roles_entry_nodes = []
@@ -57,7 +57,7 @@ class azure_roles(Control):  # TODO change the class name
                 createGraphPage(
                     self.arguments.cache_prefix,
                     f"azure_roles_paths_{hash}",
-                    "Paths to Azure roles",
+                    "Paths to Entra ID roles",
                     self.get_dico_description(),
                     paths[role["Name"]],
                     self.requests_results,
@@ -69,14 +69,13 @@ class azure_roles(Control):  # TODO change the class name
                 sortClass = str(count).zfill(6)
                 data.append(
                     {
-                        "Name": '<i class="bi bi-person-bounding-box"></i> '
-                        + role["Name"],
+                        "Name": '<i class="bi bi-person-bounding-box"></i>' + role["Name"],
                         "Description": role["Description"],
                         "Access to role": grid_data_stringify(
                             {
                                 "link": f"azure_roles_paths_{hash}.html",
                                 "value": f"{count} account{'s' if count > 1 else ''}",
-                                "before_link": f"<i class='bi bi-shuffle {sortClass}' aria-hidden='true'></i>",
+                                "before_link": f"<i class='bi bi-sign-turn-right {sortClass}' aria-hidden='true'></i>",
                             }
                         ),
                     }
@@ -90,7 +89,7 @@ class azure_roles(Control):  # TODO change the class name
 
         self.data = len(self.azure_roles_entry_nodes)
         self.name_description = (
-            f"{len(self.azure_roles_entry_nodes)} users have access to Azure roles"
+            f"{len(self.azure_roles_entry_nodes)} users have access to Entra ID roles"
         )
 
     def get_rating(self) -> int:

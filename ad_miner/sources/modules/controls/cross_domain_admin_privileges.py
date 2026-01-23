@@ -95,7 +95,7 @@ class cross_domain_admin_privileges(Control):
             user = key
             tmp_data = {}
 
-            tmp_data["user"] = '<i class="bi bi-person-fill"></i> ' + user
+            tmp_data["user"] = '<i class="bi bi-person-fill"></i>' + user
             grid_list_local_admin_targets_data = []
             grid_list_domain_admin_targets_data = []
             # create the grid
@@ -114,7 +114,7 @@ class cross_domain_admin_privileges(Control):
                 local_distinct_ends = []
                 for domain in data_local_admins[key]:
                     list_local_admin_targets_tmp_data = {
-                        "domain": '<i class="bi bi-globe2"></i> ' + domain
+                        "domain": '<i class="bi bi-globe2"></i>' + domain
                     }
                     numberofpaths = 0
                     for path in data_local_admins[key][domain]:
@@ -126,15 +126,12 @@ class cross_domain_admin_privileges(Control):
                         if last_node_name not in local_distinct_ends:
                             local_distinct_ends.append(last_node_name)
                             sortClass = last_node_name.zfill(6)
-                            list_local_admin_targets_tmp_data_copy["target"] = (
-                                grid_data_stringify(
-                                    {
-                                        "value": f"{last_node_name}",
-                                        "link": "%s_paths_cross_domain_local_admin.html"
-                                        % user,
-                                        "before_link": f'<i class="bi bi-shuffle {sortClass}"></i>',
-                                    }
-                                )
+                            list_local_admin_targets_tmp_data_copy["target"] = grid_data_stringify(
+                                {
+                                    "value": f"{last_node_name}",
+                                    "link": "%s_paths_cross_domain_local_admin.html" % user,
+                                    "before_link": f'<i class="bi bi-sign-turn-right {sortClass}"></i>',
+                                }
                             )
 
                             grid_list_local_admin_targets_data.append(
@@ -146,7 +143,7 @@ class cross_domain_admin_privileges(Control):
                     {
                         "value": f"{nb_local_distinct_ends} computers impacted",
                         "link": "%s_paths_cross_domain_local_admin.html" % user,
-                        "before_link": f'<i class="bi bi-shuffle {sortClass}"></i>',
+                        "before_link": f'<i class="bi bi-sign-turn-right {sortClass}"></i>',
                     }
                 )
                 createGraphPage(
@@ -194,7 +191,7 @@ class cross_domain_admin_privileges(Control):
                 domain_distinct_ends = []
                 for domain in data_domain_admins[key]:
                     list_domain_admin_targets_tmp_data = {
-                        "domain": '<i class="bi bi-globe2"></i> ' + domain
+                        "domain": '<i class="bi bi-globe2"></i>' + domain
                     }
 
                     for path in data_domain_admins[key][domain]:
@@ -208,15 +205,12 @@ class cross_domain_admin_privileges(Control):
                             domain_distinct_ends.append(last_node_name)
 
                             sortClass = last_node_name.zfill(6)
-                            list_domain_admin_targets_tmp_data_copy["target"] = (
-                                grid_data_stringify(
-                                    {
-                                        "value": f"{last_node_name}",
-                                        "link": "%s_paths_cross_domain_domain_admin.html"
-                                        % user,
-                                        "before_link": f'<i class="bi bi-shuffle {sortClass}"></i>',
-                                    }
-                                )
+                            list_domain_admin_targets_tmp_data_copy["target"] = grid_data_stringify(
+                                {
+                                    "value": f"{last_node_name}",
+                                    "link": "%s_paths_cross_domain_domain_admin.html" % user,
+                                    "before_link": f'<i class="bi bi-sign-turn-right-fill {sortClass}" style="color:#b00404;"></i>',
+                                }
                             )
 
                             grid_list_domain_admin_targets_data.append(
@@ -229,7 +223,7 @@ class cross_domain_admin_privileges(Control):
                     {
                         "value": f"{len(list(data_domain_admins[key].keys()))} domains impacted",
                         "link": "%s_paths_cross_domain_domain_admin.html" % user,
-                        "before_link": f'<i class="bi bi-shuffle {sortClass}"></i>',
+                        "before_link": f'<i class="bi bi-sign-turn-right-fill {sortClass}" style="color:#b00404;"></i>',
                     }
                 )
                 createGraphPage(

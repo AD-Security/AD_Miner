@@ -92,16 +92,16 @@ class non_dc_with_unconstrained_delegations(Control):
             tmp_data = {}
 
             if node.labels == "User":
-                pretty_name = f'<i class="bi bi-person-fill"></i> {end_node}'
+                pretty_name = f'<i class="bi bi-person-fill"></i>{end_node}'
             elif node.labels == "Computer":
-                pretty_name = f'<i class="bi bi-pc-display"></i> {end_node}'
+                pretty_name = f'<i class="bi bi-pc-display"></i>{end_node}'
             else:
                 pretty_name = end_node
 
             tmp_data["Configured for Kerberos Unconstrained Delegation"] = pretty_name
             tmp_data["Compromise Paths"] = grid_data_stringify(
                 {
-                    "value": f'{len(self.kud_graphs[end_node])} <i class="bi bi-shuffle 000001"></i>',
+                    "value": f'{len(self.kud_graphs[end_node])} <i class="bi bi-sign-turn-right 000001"></i>',
                     "link": "%s_kud_graph.html" % quote(str(end_node)),
                 }
             )

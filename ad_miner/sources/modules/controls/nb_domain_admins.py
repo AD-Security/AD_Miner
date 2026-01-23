@@ -48,8 +48,8 @@ class nb_domain_admins(Control):
 
         for da in self.users_nb_domain_admins:
             tmp_data = {}
-            tmp_data["domain"] = '<i class="bi bi-globe2"></i> ' + da["domain"]
-            tmp_data["name"] = '<i class="bi bi-gem"></i> ' + da["name"]
+            tmp_data["domain"] = '<i class="bi bi-globe2"></i>' + da["domain"]
+            tmp_data["name"] = '<i class="bi bi-gem"></i>' + da["name"]
             tmp_data["domain admin"] = (
                 '<i class="bi bi-check-square-fill"></i><span style="display:none">True</span>'
                 if "Domain Admin" in da["admin type"]

@@ -56,7 +56,7 @@ class pre_windows_2000_compatible_access_group(Control):
         data = []
 
         for domain, account_name, objectid, type_list in sorted_list:
-            tmp_data = {"Domain": '<i class="bi bi-globe2"></i> ' + domain}
+            tmp_data = {"Domain": '<i class="bi bi-globe2"></i>' + domain}
 
             type_clean = generic_formating.clean_label(type_list)
 
@@ -67,7 +67,7 @@ class pre_windows_2000_compatible_access_group(Control):
             tmp_data["Rating"] = (
                 '<i class="bi bi-star-fill" style="color: orange"></i><i class="bi bi-star-fill" style="color: orange"></i><i class="bi bi-star" style="color: orange"></i>'
                 if "1-5-7" not in objectid
-                else '<i class="bi bi-star-fill" style="color: red"></i><i class="bi bi-star-fill" style="color: red"></i><i class="bi bi-star-fill" style="color: red"></i>  Anonymous'
+                else '<i class="bi bi-star-fill" style="color: red"></i><i class="bi bi-star-fill" style="color: red"></i><i class="bi bi-star-fill" style="color: red"></i> Anonymous'
             )
             data.append(tmp_data)
 

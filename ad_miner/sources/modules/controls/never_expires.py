@@ -41,11 +41,11 @@ class never_expires(Control):
             # Add admin icon
             if user["name"] in self.admin_list:
                 user["name"] = (
-                    '<i class="bi bi-gem" title="This user is domain admin"></i> '
+                    '<i class="bi bi-gem" title="This user is domain admin"></i>'
                     + user["name"]
                 )
             else:
-                user["name"] = '<i class="bi bi-person-fill"></i> ' + user["name"]
+                user["name"] = '<i class="bi bi-person-fill"></i>' + user["name"]
         page = Page(
             self.arguments.cache_prefix,
             "never_expires",
@@ -66,7 +66,7 @@ class never_expires(Control):
         data = []
         for dict in self.users_password_never_expires:
             tmp_data = {
-                "domain": '<i class="bi bi-globe2"></i> ' + dict["domain"],
+                "domain": '<i class="bi bi-globe2"></i>' + dict["domain"],
                 "name": dict["name"],
             }
             tmp_data["Last login"] = days_format(dict["LastLogin"])
