@@ -2,6 +2,8 @@ import os
 import pickle
 import csv
 
+from ad_miner.sources.modules.cache_security import load_cache_entry
+
 
 class Cache:
     def __init__(self, arguments):
@@ -25,7 +27,7 @@ class Cache:
         full_name = self.cache_prefix + "_" + filename
         if os.path.exists(full_name):
             with open(full_name, "rb") as f:
-                return pickle.load(f)
+                return load_cache_entry(f)
         return False
 
     def createCsvFileFromRequest(self, filename, data, object_type):
